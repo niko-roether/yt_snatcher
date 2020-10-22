@@ -18,7 +18,7 @@ class HomeState extends State<Home> {
       "fIJwDg_EP2Y",
       YTVideoQuality(Quality.HIGHEST_QUALITY),
     )..listen((event) {
-        this.setState(() => content += event.join(", "));
+        this.setState(() => content += "*");
       });
   }
 
