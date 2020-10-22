@@ -12,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_conditional_rendering: ^1.1.1
+  youtube_explode_dart: ^1.6.1+1
+  video_player: ^0.11.1+2
 
 
 dev_dependencies:
