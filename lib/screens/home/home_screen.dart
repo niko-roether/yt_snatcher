@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/screens/home/nav_bar.dart';
+import 'package:yt_snatcher/screens/home/pages/home.dart';
+import 'package:yt_snatcher/screens/home/pages/music.dart';
+import 'package:yt_snatcher/screens/home/pages/videos.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,16 +15,16 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   int _pageIndex = 0;
   static final _pages = [
-    Container(), // Home
-    Container(), // Videos
-    Container(), // Music
+    Home(),
+    Videos(),
+    Music(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Screen(
       title: Text("Youtube Snatcher"),
-      content: Container(),
+      content: _pages[_pageIndex],
       navigationBar: NavBar(currentIndex: _pageIndex, onTap: _onTapNavItem),
     );
   }
