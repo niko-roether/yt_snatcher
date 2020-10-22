@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/screens/home/nav_bar.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
