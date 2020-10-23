@@ -14,6 +14,7 @@ dependencies:
   flutter_conditional_rendering: ^1.1.1
   youtube_explode_dart: ^1.6.1+1
   better_player: ^0.0.29+1
+  flutter_ffmpeg: ^0.3.0
 
 
 dev_dependencies:
