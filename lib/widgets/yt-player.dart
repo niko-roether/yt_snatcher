@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_conditional_rendering/conditional.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:yt_snatcher/services/youtube.dart';
 
 class YtPlayer extends StatefulWidget {
   final String videoId;
@@ -18,17 +19,17 @@ class YtPlayer extends StatefulWidget {
 }
 
 class YtPlayerState extends State<YtPlayer> {
-  final YoutubeExplode _yt = YoutubeExplode();
+  final _yt = new Youtube();
   final String id;
-  StreamManifest _manifest;
+  String _url;
 
   YtPlayerState({@required this.id}) {
     _getManifest();
   }
 
   void _getManifest() async {
-    final manifest = await _yt.videos.streamsClient.getManifest(id);
-    setState(() => _manifest = manifest);
+    final url = await _yt.getVideoURL(id);
+    setState(() => _url = url);
   }
 
   @override
@@ -39,10 +40,9 @@ class YtPlayerState extends State<YtPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    if (_manifest == null) return Center(child: CircularProgressIndicator());
-    var stream = _manifest.muxed.sortByVideoQuality().last;
+    if (_url == null) return Center(child: CircularProgressIndicator());
     return Center(
-      child: BetterPlayer.network(stream.url.toString()),
+      child: BetterPlayer.network(_url),
     );
   }
 }
