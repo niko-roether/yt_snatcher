@@ -5,7 +5,7 @@ import '../../../widgets/yt-player.dart';
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return YtPlayer(videoId: "fIJwDg_EP2Y");
+    return YtPlayer(videoId: "h7NE6BoTCIA");
   }
 }
 
