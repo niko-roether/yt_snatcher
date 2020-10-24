@@ -1,10 +1,6 @@
-// FIXME this doesn't work, but I decided to keep it nonetheless so that I don't forget how the VideoPlayer works
-
 import 'package:better_player/better_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_conditional_rendering/conditional.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:yt_snatcher/services/youtube.dart';
 
 class YtPlayer extends StatefulWidget {
@@ -24,11 +20,12 @@ class YtPlayerState extends State<YtPlayer> {
   String _url;
 
   YtPlayerState({@required this.id}) {
-    _getManifest();
+    _getUrl();
   }
 
-  void _getManifest() async {
-    final url = await _yt.getVideoURL(id);
+  void _getUrl() async {
+    var video = await _yt.getVideo(id);
+    var url = video.muxed().highestResolution().url;
     setState(() => _url = url);
   }
 
