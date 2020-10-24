@@ -134,36 +134,38 @@ class YoutubeVideo extends YoutubeVideoMeta {
 
   // Streams
   YoutubeMediaSet get streams {
-    return YoutubeMediaSet(_manifest.streams.map((e) => YoutubeMedia(e, _yt)));
+    return YoutubeMediaSet(
+      _manifest.streams.map((e) => YoutubeMedia(e, _yt)).toList(),
+    );
   }
 
   YoutubeVideoMediaSet withVideo() {
     return YoutubeVideoMediaSet(
-      _manifest.video.map((e) => YoutubeVideoMedia(e, _yt)),
+      _manifest.video.map((e) => YoutubeVideoMedia(e, _yt)).toList(),
     );
   }
 
   YoutubeVideoMediaSet videoOnly() {
     return YoutubeVideoMediaSet(
-      _manifest.videoOnly.map((e) => YoutubeVideoMedia(e, _yt)),
+      _manifest.videoOnly.map((e) => YoutubeVideoMedia(e, _yt)).toList(),
     );
   }
 
   YoutubeAudioMediaSet withAudio() {
     return YoutubeAudioMediaSet(
-      _manifest.audio.map((e) => YoutubeAudioMedia(e, _yt)),
+      _manifest.audio.map((e) => YoutubeAudioMedia(e, _yt)).toList(),
     );
   }
 
   YoutubeAudioMediaSet audioOnly() {
     return YoutubeAudioMediaSet(
-      _manifest.audio.map((e) => YoutubeAudioMedia(e, _yt)),
+      _manifest.audio.map((e) => YoutubeAudioMedia(e, _yt)).toList(),
     );
   }
 
   YoutubeMuxedMediaSet muxed() {
     return YoutubeMuxedMediaSet(
-      _manifest.muxed.map((e) => YoutubeMuxedMedia(e, _yt)),
+      _manifest.muxed.map((e) => YoutubeMuxedMedia(e, _yt)).toList(),
     );
   }
 }
