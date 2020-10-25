@@ -25,7 +25,7 @@ class YtPlayerState extends State<YtPlayer> {
 
   void _getUrl() async {
     var video = await _yt.getVideo(id);
-    var url = video.muxed().highestResolution().url;
+    var url = video.muxed.highestBitrate().url;
     setState(() => _url = url);
   }
 
