@@ -136,19 +136,19 @@ class YoutubeVideo extends YoutubeVideoMeta {
     );
   }
 
-  YoutubeVideoMediaSet get video {
+  YoutubeVideoMediaSet get videoStreams {
     return YoutubeVideoMediaSet(
       _manifest.videoOnly.map((e) => YoutubeVideoMedia(e, _yt)).toList(),
     );
   }
 
-  YoutubeAudioMediaSet get audio {
+  YoutubeAudioMediaSet get audioStreams {
     return YoutubeAudioMediaSet(
       _manifest.audioOnly.map((e) => YoutubeAudioMedia(e, _yt)).toList(),
     );
   }
 
-  YoutubeMuxedMediaSet get muxed {
+  YoutubeMuxedMediaSet get muxedStreams {
     return YoutubeMuxedMediaSet(
       _manifest.muxed.map((e) => YoutubeMuxedMedia(e, _yt)).toList(),
     );

@@ -37,7 +37,7 @@ class YtPlayerState extends State<YtPlayer> {
   @override
   Widget build(BuildContext context) {
     if (_video == null) return Center(child: CircularProgressIndicator());
-    var url = _video.muxed.highestResolution().url;
+    var url = _video.muxedStreams.highestResolution().url;
     return Center(
       child: BetterPlayer.network(
         url,
