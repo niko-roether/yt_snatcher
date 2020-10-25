@@ -1,6 +1,5 @@
 // yt.getVideo("dfsdghdfg").muxed.highestQuality();
 
-import 'package:flutter/material.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:yt_snatcher/util.dart';
 
@@ -23,7 +22,7 @@ class YoutubeMedia<I extends StreamInfo> {
   YoutubeMedia(this._info, this._yt);
 
   int get tag => _info.tag;
-  String get url => _info.url.path;
+  String get url => _info.url.toString();
   String get container => _info.container.name;
   int get size => _info.size.totalBytes;
   int get bitrate => _info.bitrate.bitsPerSecond;
@@ -139,31 +138,19 @@ class YoutubeVideo extends YoutubeVideoMeta {
     );
   }
 
-  YoutubeVideoMediaSet withVideo() {
-    return YoutubeVideoMediaSet(
-      _manifest.video.map((e) => YoutubeVideoMedia(e, _yt)).toList(),
-    );
-  }
-
-  YoutubeVideoMediaSet videoOnly() {
+  YoutubeVideoMediaSet get video {
     return YoutubeVideoMediaSet(
       _manifest.videoOnly.map((e) => YoutubeVideoMedia(e, _yt)).toList(),
     );
   }
 
-  YoutubeAudioMediaSet withAudio() {
+  YoutubeAudioMediaSet get audio {
     return YoutubeAudioMediaSet(
-      _manifest.audio.map((e) => YoutubeAudioMedia(e, _yt)).toList(),
+      _manifest.audioOnly.map((e) => YoutubeAudioMedia(e, _yt)).toList(),
     );
   }
 
-  YoutubeAudioMediaSet audioOnly() {
-    return YoutubeAudioMediaSet(
-      _manifest.audio.map((e) => YoutubeAudioMedia(e, _yt)).toList(),
-    );
-  }
-
-  YoutubeMuxedMediaSet muxed() {
+  YoutubeMuxedMediaSet get muxed {
     return YoutubeMuxedMediaSet(
       _manifest.muxed.map((e) => YoutubeMuxedMedia(e, _yt)).toList(),
     );
@@ -174,13 +161,13 @@ class Youtube {
   final YoutubeExplode _yt = YoutubeExplode();
 
   Future<YoutubeVideoMeta> getVideoMeta(String id) async {
-    return YoutubeVideoMeta(await _yt.videos.get(id));
+    return YoutubeVideoMeta(await retry(() => _yt.videos.get(id), 10));
   }
 
   Future<YoutubeVideo> getVideo(String id) async {
     return YoutubeVideo(
-      await _yt.videos.get(id),
-      await _yt.videos.streamsClient.getManifest(id),
+      await retry(() => _yt.videos.get(id), 10),
+      await retry(() => _yt.videos.streamsClient.getManifest(id), 10),
       _yt,
     );
   }
