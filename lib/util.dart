@@ -26,3 +26,15 @@ List<T> listSort<T>(List<T> list, int Function(T, T) compare) {
   list.sort(compare);
   return list;
 }
+
+Future<T> retry<T>(Future<T> Function() futureBuilder, int times) async {
+  var error;
+  for (; times > 0; times--) {
+    try {
+      return await futureBuilder();
+    } catch (e) {
+      error = e;
+    }
+  }
+  throw error;
+}
