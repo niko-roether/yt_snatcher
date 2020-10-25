@@ -59,22 +59,20 @@ class YoutubeMuxedMedia extends YoutubeMedia<MuxedStreamInfo> {
 }
 
 class YoutubeMediaSet<M extends YoutubeMedia> extends Iterable<M> {
-  static final HIGHEST_BITRATE =
+  static final sortByBitrate =
       (YoutubeMedia a, YoutubeMedia b) => a.bitrate.compareTo(b.bitrate);
-  static final LARGEST_SIZE =
+  static final sortBySize =
       (YoutubeMedia a, YoutubeMedia b) => a.size.compareTo(b.size);
   final List<M> _media;
 
   YoutubeMediaSet(this._media);
 
-  void sortByBitrate() => _media.sort((a, b) => a.bitrate.compareTo(b.bitrate));
-
   M highestBitrate() {
-    return listSort(_media, HIGHEST_BITRATE).last;
+    return listSort(_media, sortByBitrate).last;
   }
 
   M smallestSize() {
-    return listSort(_media, LARGEST_SIZE).first;
+    return listSort(_media, sortBySize).first;
   }
 
   @override
@@ -82,13 +80,13 @@ class YoutubeMediaSet<M extends YoutubeMedia> extends Iterable<M> {
 }
 
 class YoutubeVideoMediaSet extends YoutubeMediaSet<YoutubeVideoMedia> {
-  static final HIGHEST_RESOLUTION = (YoutubeVideoMedia a, YoutubeVideoMedia b) {
-    return a.resolution.compareTo(b.resolution);
-  };
+  static final sortByResolution = (YoutubeVideoMedia a, YoutubeVideoMedia b) =>
+      a.resolution.compareTo(b.resolution);
+
   YoutubeVideoMediaSet(List<YoutubeVideoMedia> media) : super(media);
 
   YoutubeVideoMedia highestResolution() {
-    return listSort(_media, HIGHEST_RESOLUTION).last;
+    return listSort(_media, sortByResolution).last;
   }
 }
 
@@ -99,14 +97,14 @@ class YoutubeAudioMediaSet extends YoutubeMediaSet<YoutubeAudioMedia> {
 }
 
 class YoutubeMuxedMediaSet extends YoutubeMediaSet<YoutubeMuxedMedia> {
-  static final HIGHEST_RESOLUTION = (YoutubeMuxedMedia a, YoutubeMuxedMedia b) {
-    return a.resolution.compareTo(b.resolution);
-  };
+  static final sortByResolution = (YoutubeMuxedMedia a, YoutubeMuxedMedia b) =>
+      a.resolution.compareTo(b.resolution);
+
   YoutubeMuxedMediaSet(List<YoutubeMuxedMedia> media) : super(media);
 
   // FIXME Code repetition again...
   YoutubeMuxedMedia highestResolution() {
-    return listSort(_media, HIGHEST_RESOLUTION).last;
+    return listSort(_media, sortByResolution).last;
   }
 }
 

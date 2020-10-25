@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class FileManager {
-  static final _TEMP_PATH = "${Directory.systemTemp}/yt-snatcher/";
-  static final _VIDEO_PATH = "videos/";
-  static final _MUSIC_PATH = "music/";
+  static final _tempPath = "${Directory.systemTemp}/yt-snatcher/";
+  static final _videoPath = "videos/";
+  static final _musicPath = "music/";
   static Directory __localPath;
 
   Future<Directory> _localPath() async {
@@ -30,17 +30,17 @@ class FileManager {
   }
 
   Future<void> streamTempFile(String path, Stream<List<int>> stream) {
-    var targetFile = File("$_TEMP_PATH/$path");
+    var targetFile = File("$_tempPath/$path");
     return streamFile(targetFile, stream);
   }
 
   Future<void> streamVideoFile(String path, Stream<List<int>> stream) async {
-    var targetFile = await _getLocalFile("$_VIDEO_PATH/$path");
+    var targetFile = await _getLocalFile("$_videoPath/$path");
     return streamFile(targetFile, stream);
   }
 
   Future<void> streamMusicFile(String path, Stream<List<int>> stream) async {
-    var targetFile = await _getLocalFile("$_MUSIC_PATH/$path");
+    var targetFile = await _getLocalFile("$_musicPath/$path");
     return streamFile(targetFile, stream);
   }
 }
