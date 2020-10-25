@@ -1,6 +1,7 @@
 import 'package:better_player/better_player.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yt_snatcher/screens/video_info/video_info_screen.dart';
 import 'package:yt_snatcher/services/youtube.dart';
 
 class YtPlayer extends StatefulWidget {
@@ -17,16 +18,15 @@ class YtPlayer extends StatefulWidget {
 class YtPlayerState extends State<YtPlayer> {
   final _yt = new Youtube();
   final String id;
-  String _url;
+  YoutubeVideo _video;
 
   YtPlayerState({@required this.id}) {
-    _getUrl();
+    _getVideo();
   }
 
-  void _getUrl() async {
+  void _getVideo() async {
     var video = await _yt.getVideo(id);
-    var url = video.muxed.highestBitrate().url;
-    setState(() => _url = url);
+    setState(() => _video = video);
   }
 
   @override
@@ -37,9 +37,27 @@ class YtPlayerState extends State<YtPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    if (_url == null) return Center(child: CircularProgressIndicator());
+    if (_video == null) return Center(child: CircularProgressIndicator());
+    var url = _video.muxed.highestResolution().url.toString();
     return Center(
-      child: BetterPlayer.network(_url),
+      child: BetterPlayer.network(
+        url,
+        betterPlayerConfiguration: BetterPlayerConfiguration(
+          controlsConfiguration: BetterPlayerControlsConfiguration(
+            overflowMenuCustomItems: [
+              BetterPlayerOverflowMenuItem(
+                Icons.info,
+                "Info",
+                () => Navigator.pushNamed(
+                  context,
+                  VideoInfoScreen.ROUTENAME,
+                  arguments: _video,
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
