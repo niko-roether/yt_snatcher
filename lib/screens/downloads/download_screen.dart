@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class DownloadScreen extends StatelessWidget {
   static const ROUTENAME = "/downloads";
