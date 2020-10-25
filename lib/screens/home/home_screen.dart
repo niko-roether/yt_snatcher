@@ -6,6 +6,8 @@ import 'package:yt_snatcher/screens/home/pages/videos.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  static const ROUTENAME = "/";
+
   @override
   State<HomeScreen> createState() {
     return HomeScreenState();
