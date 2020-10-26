@@ -1,5 +1,7 @@
 // yt.getVideo("dfsdghdfg").muxed.highestQuality();
 
+import 'dart:convert';
+
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:yt_snatcher/util.dart';
 
@@ -113,6 +115,7 @@ class YoutubeVideoMeta {
 
   YoutubeVideoMeta(this._video);
 
+  String get id => _video.id.value;
   String get title => _video.title;
   String get youtubeUrl => _video.url;
   String get description => _video.description;
@@ -121,6 +124,33 @@ class YoutubeVideoMeta {
   Duration get duration => _video.duration;
   YoutubeThumbnailSet get thumbnails => YoutubeThumbnailSet(_video.thumbnails);
   DateTime get uploadDate => _video.uploadDate;
+
+  String toJson() => jsonEncode({
+        "id": id,
+        "title": title,
+        "description": description,
+        "channelName": channelName,
+        "channelId": channelId,
+        "duration": duration.toString(),
+        "uploadDate": uploadDate.millisecondsSinceEpoch,
+      });
+
+  factory YoutubeVideoMeta.fromJson(String json) {
+    Map<String, dynamic> data = jsonDecode(json);
+    var video = Video(
+      data["id"],
+      data["title"],
+      data["channelName"],
+      data["channelId"],
+      DateTime.fromMicrosecondsSinceEpoch(data["uploadDate"]),
+      data["description"],
+      parseDuration(data["duration"]),
+      ThumbnailSet(data["id"]),
+      null,
+      null,
+    );
+    return YoutubeVideoMeta(video);
+  }
 }
 
 class YoutubeVideo extends YoutubeVideoMeta {
@@ -174,98 +204,3 @@ class Youtube {
     _yt.close();
   }
 }
-
-// --- Previous Implementation ---
-
-// import 'dart:async';
-// import 'package:youtube_explode_dart/youtube_explode_dart.dart';
-
-// // Youtube.getManifest("dsfadsf").stream(info);
-
-// class YoutubeMedia<I extends StreamInfo> {
-//   final YoutubeExplode _yt;
-//   final I _info;
-//   YoutubeMedia(this._info, this._yt);
-
-//   Stream<List<int>> getDataStream() {
-//     return _yt.videos.streamsClient.get(_info);
-//   }
-
-//   String get url {
-//     return _info.url.path;
-//   }
-
-//   void close() {
-//     _yt.close();
-//   }
-// }
-
-// class YoutubeMediaSet<I extends StreamInfo> {
-//   final YoutubeExplode _yt;
-//   final Iterable<I> _streams;
-//   YoutubeMediaSet(this._streams, this._yt);
-
-//   YoutubeMedia<RI> _getYoutubeMedia<RI extends StreamInfo>(RI info) {
-//     return YoutubeMedia<RI>(info, _yt);
-//   }
-
-//   List<YoutubeMedia<I>> get streams => _streams.map((e) => _getYoutubeMedia(e));
-
-//   YoutubeMedia<I> get highestBitrate {
-//     return _getYoutubeMedia(_streams.withHighestBitrate());
-//   }
-
-//   YoutubeMedia<VideoStreamInfo> get highestQuality {
-//     if (I is VideoStreamInfo) {
-//       return _getYoutubeMedia(
-//         (_streams as List<VideoStreamInfo>).sortByVideoQuality().last,
-//       );
-//     }
-//     throw "This media set does not contain any video streams";
-//   }
-// }
-
-// class YoutubeManifest {
-//   final YoutubeExplode _yt;
-//   final StreamManifest manifest;
-//   YoutubeManifest(this.manifest, this._yt);
-
-//   YoutubeMediaSet<AudioStreamInfo> get audio {
-//     return YoutubeMediaSet(manifest.audio, _yt);
-//   }
-
-//   YoutubeMediaSet<AudioOnlyStreamInfo> get audioOnly {
-//     return YoutubeMediaSet(manifest.audioOnly, _yt);
-//   }
-
-//   YoutubeMediaSet<MuxedStreamInfo> get muxed {
-//     return YoutubeMediaSet(manifest.muxed, _yt);
-//   }
-
-//   YoutubeMediaSet<VideoStreamInfo> get video {
-//     return YoutubeMediaSet(manifest.video, _yt);
-//   }
-
-//   YoutubeMediaSet<VideoOnlyStreamInfo> get videoOnly {
-//     return YoutubeMediaSet(manifest.videoOnly, _yt);
-//   }
-
-//   YoutubeMediaSet<StreamInfo> get all {
-//     return YoutubeMediaSet(manifest.streams, _yt);
-//   }
-// }
-
-// class Youtube {
-//   final _yt = YoutubeExplode();
-
-//   Future<YoutubeManifest> getManifest(String videoId) async {
-//     return YoutubeManifest(
-//       await _yt.videos.streamsClient.getManifest(videoId),
-//       _yt,
-//     );
-//   }
-
-//   void close() {
-//     _yt.close();
-//   }
-// }
