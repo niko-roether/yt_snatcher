@@ -1,131 +1,142 @@
-import 'dart:io';
+import 'package:yt_snatcher/services/youtube.dart' as yt;
+import 'package:yt_snatcher/services/download.dart' as dl;
 
-import 'package:flutter/cupertino.dart';
-import 'package:yt_snatcher/services/download.dart';
-import 'package:yt_snatcher/services/youtube.dart';
+abstract class Downloader {
+  dl.DownloadManager _dlManager;
+  yt.VideoMeta _meta;
+  int _byteCount = 0;
 
-/// Represents the download process of media, i. e. Video or Music
-abstract class YoutubeMediaDownload {
-  DownloadManager _dl;
+  Downloader(this._meta, this._dlManager);
 
-  YoutubeMediaDownload(_dl);
-
-  Future<File> download(String filename);
+  Future<dl.Download> download(String name, [void Function(double) onProgress]);
 }
 
-/// Represents a Music media download
-class YoutubeMusicMediaDownload extends YoutubeMediaDownload {
-  YoutubeAudioMedia _audio;
-  YoutubeMusicMediaDownload(this._audio, DownloadManager dl) : super(dl);
+class VideoDownloader extends Downloader {
+  yt.VideoMedia _video;
+  yt.AudioMedia _audio;
+
+  VideoDownloader(
+    yt.VideoMeta meta,
+    this._video,
+    this._audio,
+    dl.DownloadManager dlManager,
+  ) : super(meta, dlManager);
 
   @override
-  Future<File> download(String filename) => _dl.downloadMusic(filename, _audio);
-}
-
-/// Represents a Video (and Audio) media download
-class YoutubeVideoMediaDownload extends YoutubeMediaDownload {
-  YoutubeVideoMedia _video;
-  YoutubeAudioMedia _audio;
-  YoutubeVideoMediaDownload(this._video, this._audio, DownloadManager dl)
-      : super(dl);
-
-  @override
-  Future<File> download(String filename) =>
-      _dl.downloadVideo(filename, _video, _audio);
-}
-
-/// Represents a download which includes both media and metadata
-abstract class YoutubeDownload<M extends YoutubeMediaDownload> {
-  final DownloadManager _dl;
-  final YoutubeVideoMeta _meta;
-  final M _mediaDownload;
-
-  YoutubeDownload(this._meta, this._mediaDownload, this._dl);
-
-  @mustCallSuper
-  Future<void> download() {
-    _dl.
+  Future<dl.Download> download(
+    String name, [
+    void Function(double) onProgress,
+  ]) {
+    return _dlManager.downloadVideo(name, _meta, _video, _audio, (int bytes) {
+      _byteCount += bytes;
+      onProgress(_byteCount / (_video.size + _audio.size));
+    });
   }
 }
 
-class YoutubeMusicDownload extends YoutubeDownload<YoutubeMusicMediaDownload> {
-  YoutubeMusicDownload(YoutubeVideoMeta meta, YoutubeMusicMediaDownload mediaDownload, DownloadManager dl) : super(meta, mediaDownload, dl);
+class MusicDownloader extends Downloader {
+  yt.AudioMedia _media;
+  MusicDownloader(yt.VideoMeta meta, this._media, dl.DownloadManager dlManager)
+      : super(meta, dlManager);
 
   @override
-  Future<void> download() {
-    // TODO: implement download
-    throw UnimplementedError();
+  Future<dl.Download> download(
+    String name, [
+    void Function(double) onProgress,
+  ]) {
+    return _dlManager.downloadMusic(name, _meta, _media, (int bytes) {
+      _byteCount += bytes;
+      onProgress(_byteCount / (_media.size));
+    });
   }
 }
 
-/// A set of downloads of a given type
-abstract class YoutubeDownloadSet<D extends YoutubeDownload> {
-  final DownloadManager _dl;
-  final YoutubeVideoMeta _meta;
+abstract class DownloaderSet<D extends Downloader> {
+  yt.Video _video;
+  dl.DownloadManager _dlManager;
 
-  YoutubeDownloadSet(this._meta, this._dl);
+  DownloaderSet(this._video, this._dlManager);
 
-  D smallest();
   D best();
+  D smallest();
 }
 
-class YoutubeVideoDownloadSet extends YoutubeDownloadSet<Youtube> {
-  YoutubeVideoMediaSet _mediaSet;
-  YoutubeVideoDownloadSet(
-    YoutubeVideoMeta meta,
-    this._mediaSet,
-    DownloadManager dl,
-  ) : super(meta, dl);
+class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
+  VideoDownloaderSet(yt.Video video, dl.DownloadManager dlManager)
+      : super(video, dlManager);
 
   @override
-  YoutubeVideoMediaDownload best() {
-    // TODO: implement best
-    throw UnimplementedError();
+  VideoDownloader best() {
+    return VideoDownloader(
+      _video,
+      _video.videoStreams.highestResolution(),
+      _video.audioStreams.highestBitrate(),
+      _dlManager,
+    );
   }
 
   @override
-  YoutubeDownload<YoutubeVideoMedia> smallest() {
-    // TODO: implement smallest
-    throw UnimplementedError();
+  VideoDownloader smallest() {
+    return VideoDownloader(
+      _video,
+      _video.videoStreams.smallestSize(),
+      _video.audioStreams.smallestSize(),
+      _dlManager,
+    );
   }
 }
 
-class YoutubeMusicDownloadSet
-    extends YoutubeDownloadSet<YoutubeAudioMedia, YoutubeAudioMediaSet> {
-  YoutubeMusicDownloadSet(
-    YoutubeVideoMeta meta,
-    YoutubeAudioMediaSet mediaSet,
-    DownloadManager dl,
-  ) : super(meta, mediaSet, dl);
-}
+class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
+  MusicDownloaderSet(yt.Video video, dl.DownloadManager dlManager)
+      : super(video, dlManager);
 
-class YoutubePreDownload {
-  final String _id;
-  final Youtube _yt;
-  final DownloadManager _dl;
-
-  YoutubePreDownload(this._id, this._yt, this._dl);
-
-  Future<YoutubeVideo> _getVideo() => _yt.getVideo(_id);
-
-  Future<YoutubeVideoDownloadSet> asVideo() async {
-    var video = await _getVideo();
-    return YoutubeVideoDownloadSet(video, video.videoStreams, _dl);
+  @override
+  MusicDownloader best() {
+    return MusicDownloader(
+      _video,
+      _video.audioStreams.highestBitrate(),
+      _dlManager,
+    );
   }
 
-  Future<YoutubeMusicDownloadSet> asMusic() async {
-    var video = await _getVideo();
-    return YoutubeMusicDownloadSet(video, video.audioStreams, _dl);
+  @override
+  MusicDownloader smallest() {
+    return MusicDownloader(
+      _video,
+      _video.audioStreams.smallestSize(),
+      _dlManager,
+    );
+  }
+}
+
+class PreDownload {
+  String id;
+  yt.Youtube _yt;
+  dl.DownloadManager _dlManager;
+
+  PreDownload(this.id, this._yt, this._dlManager);
+
+  Future<yt.Video> _getVideo() => _yt.getVideo(id);
+
+  Future<DownloaderSet> asVideo() async {
+    return VideoDownloaderSet(await _getVideo(), _dlManager);
+  }
+
+  Future<DownloaderSet> asMusic() async {
+    return MusicDownloaderSet(await _getVideo(), _dlManager);
   }
 }
 
 class YoutubeDL {
-  final _dl = DownloadManager();
-  final _yt = Youtube();
+  final _yt = yt.Youtube();
+  final _dlManager = dl.DownloadManager();
 
-  void close() {
-    _yt.close();
-  }
+  PreDownload prepare(String id) => PreDownload(id, _yt, _dlManager);
 
-  YoutubePreDownload prepare(String id) => YoutubePreDownload(id, _yt, _dl);
+  void close() => _yt.close();
+}
+
+void doThing() async {
+  var ytdl = YoutubeDL();
+  var dlSet = await ytdl.prepare("asdffdgg").asVideo();
 }

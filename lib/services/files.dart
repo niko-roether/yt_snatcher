@@ -12,14 +12,14 @@ class FileDoesNotExistException implements Exception {
 }
 
 class FileManager {
-  static final _tempPath = "${Directory.systemTemp}/yt-snatcher/";
-  static final _videoPath = "videos/";
-  static final _musicPath = "music/";
-  static Directory __localPath;
+  static final _tempPath = "${Directory.systemTemp.path}/yt-snatcher";
+  static final _videoPath = "/videos";
+  static final _musicPath = "/music";
+  static String __localPath;
 
-  Future<Directory> _localPath() async {
+  Future<String> _localPath() async {
     if (__localPath == null)
-      return __localPath = await getApplicationDocumentsDirectory();
+      return __localPath = (await getApplicationDocumentsDirectory()).path;
     return __localPath;
   }
 
@@ -82,22 +82,28 @@ class FileManager {
       getMusicFile("meta/$filename");
 
   Future<List<File>> getVideoFiles() async {
-    var entities = await Directory(_videoPath).list().toList();
+    var localPath = await _localPath();
+    var entities = await Directory("$localPath$_videoPath").list().toList();
     return entities.map((e) => File.fromUri(e.uri));
   }
 
   Future<List<File>> getMusicFiles() async {
-    var entities = await Directory(_musicPath).list().toList();
-    return entities.map((e) => File.fromUri(e.uri));
+    var localPath = await _localPath();
+    var entities = await Directory("$localPath$_musicPath").list().toList();
+    return entities.map((e) => File.fromUri(e.uri)).toList();
   }
 
   Future<List<File>> getVideoMetaFiles() async {
-    var entities = await Directory("$_videoPath/meta").list().toList();
+    var localPath = await _localPath();
+    var entities =
+        await Directory("$localPath$_videoPath/meta").list().toList();
     return entities.map((e) => File.fromUri(e.uri));
   }
 
   Future<List<File>> getMusicMetaFiles() async {
-    var entities = await Directory("$_musicPath/meta").list().toList();
+    var localPath = await _localPath();
+    var entities =
+        await Directory("$localPath$_musicPath/meta").list().toList();
     return entities.map((e) => File.fromUri(e.uri));
   }
 }
