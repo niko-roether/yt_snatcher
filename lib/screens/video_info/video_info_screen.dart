@@ -8,7 +8,7 @@ class VideoInfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    YoutubeVideoMeta video = ModalRoute.of(context).settings.arguments;
+    VideoMeta video = ModalRoute.of(context).settings.arguments;
     return Screen(
       title: Text("Video Information"),
       content: YTVideoInfo(video),
