@@ -79,6 +79,7 @@ class DownloadMeta {
 class Download {
   final DownloadMeta meta;
   final File mediaFile;
+  // TODO thumbnail files
 
   Download(this.meta, this.mediaFile);
 
@@ -231,12 +232,6 @@ class DownloadManager {
         DownloadMeta(meta, id, mediaFilename, null, DownloadType.VIDEO);
     return _fileManager.writeVideoMetaFile(filename, dlMeta.toJson());
   }
-
-  Future<File> _getMusicMeta(String name) =>
-      _fileManager.getMusicMetaFile(_metaFileName(name));
-
-  Future<File> _getVideoMeta(String name) =>
-      _fileManager.getVideoMetaFile(_metaFileName(name));
 
   Future<Download> downloadMusic(
     String name,
