@@ -29,7 +29,8 @@ class Media<I extends yte.StreamInfo> {
   int get size => _info.size.totalBytes;
   int get bitrate => _info.bitrate.bitsPerSecond;
 
-  Stream<List<int>> getStream() => _yt.videos.streamsClient.get(_info);
+  Stream<List<int>> getStream() =>
+      _yt.videos.streamsClient.get(_info).asBroadcastStream();
 }
 
 class AudioMedia extends Media<yte.AudioStreamInfo> {
@@ -137,10 +138,10 @@ class VideoMeta {
   factory VideoMeta.fromJson(String json) {
     Map<String, dynamic> data = jsonDecode(json);
     var video = yte.Video(
-      data["id"],
+      yte.VideoId(data["id"]),
       data["title"],
       data["channelName"],
-      data["channelId"],
+      yte.ChannelId(data["channelId"]),
       DateTime.fromMicrosecondsSinceEpoch(data["uploadDate"]),
       data["description"],
       parseDuration(data["duration"]),

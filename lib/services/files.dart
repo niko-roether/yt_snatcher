@@ -19,20 +19,19 @@ class FileManager {
 
   Future<String> _localPath() async {
     if (__localPath == null)
-      return __localPath = (await getApplicationDocumentsDirectory()).path;
+      return __localPath = (await getApplicationDocumentsDirectory())
+          .path
+          .replaceAll(new RegExp("\/\$"), "");
     return __localPath;
   }
 
-  Future<File> _getFile(String dir, {bool recursive = true}) async {
-    return await File(dir).create(recursive: recursive);
-  }
-
-  Future<File> _getLocalFile(String path, {bool recursive = true}) async {
+  Future<File> _getLocalFile(String path) async {
     var localPath = await _localPath();
-    return _getFile("$localPath/$path", recursive: recursive);
+    return File("$localPath$path");
   }
 
   Future<File> streamFile(File file, Stream<List<int>> stream) async {
+    await file.create(recursive: true);
     var fstream = file.openWrite();
     await stream.pipe(fstream);
     await fstream.close();
@@ -49,6 +48,11 @@ class FileManager {
     return streamFile(targetFile, stream);
   }
 
+  Future<File> createVideoFile(String name) async {
+    var targetFile = await _getLocalFile("$_videoPath/$name");
+    return targetFile.create();
+  }
+
   Future<File> streamMusicFile(String name, Stream<List<int>> stream) async {
     var targetFile = await _getLocalFile("$_musicPath/$name");
     return streamFile(targetFile, stream);
@@ -56,18 +60,20 @@ class FileManager {
 
   Future<File> writeVideoMetaFile(String name, String content) async {
     var targetFile = await _getLocalFile("$_videoPath/meta/$name");
+    await targetFile.create(recursive: true);
     return targetFile.writeAsString(content);
   }
 
   Future<File> writeMusicMetaFile(String name, String content) async {
     var targetFile = await _getLocalFile("$_musicPath/meta/$name");
+    await targetFile.create(recursive: true);
     return targetFile.writeAsString(content);
   }
 
   Future<File> _getExistingFile(String filepath) async {
     var file = await _getLocalFile(filepath);
     if (await file.exists()) return file;
-    throw FileDoesNotExistException(file.path);
+    return null;
   }
 
   Future<File> getVideoFile(String filename) =>
@@ -97,7 +103,7 @@ class FileManager {
     var localPath = await _localPath();
     var entities =
         await Directory("$localPath$_videoPath/meta").list().toList();
-    return entities.map((e) => File.fromUri(e.uri));
+    return entities.map((e) => File.fromUri(e.uri)).toList();
   }
 
   Future<List<File>> getMusicMetaFiles() async {

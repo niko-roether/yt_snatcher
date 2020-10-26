@@ -23,11 +23,12 @@ class MuxerException implements Exception {
 class Muxer {
   final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
 
-  Future<File> mux(File file1, File file2, String out) async {
-    int errcode = await _ffmpeg.execute("-i $file1 -i $file2 $out");
+  Future<File> mux(String file1, String file2, String out) async {
+    File(out).create(recursive: true);
+    int errcode = await _ffmpeg.execute("-y -i $file1 -i $file2 $out");
     switch (errcode) {
       case 0:
-        return File(out);
+        return Future.delayed(Duration(milliseconds: 100), () => File(out));
       case 255:
         throw MuxerUserCancelException();
       default:

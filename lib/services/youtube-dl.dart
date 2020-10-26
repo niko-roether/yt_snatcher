@@ -8,7 +8,7 @@ abstract class Downloader {
 
   Downloader(this._meta, this._dlManager);
 
-  Future<dl.Download> download(String name, [void Function(double) onProgress]);
+  Future<dl.Download> download([void Function(double) onProgress]);
 }
 
 class VideoDownloader extends Downloader {
@@ -23,13 +23,13 @@ class VideoDownloader extends Downloader {
   ) : super(meta, dlManager);
 
   @override
-  Future<dl.Download> download(
-    String name, [
+  Future<dl.Download> download([
     void Function(double) onProgress,
   ]) {
-    return _dlManager.downloadVideo(name, _meta, _video, _audio, (int bytes) {
+    return _dlManager.downloadVideo(_meta.id, _meta, _video, _audio,
+        (int bytes) {
       _byteCount += bytes;
-      onProgress(_byteCount / (_video.size + _audio.size));
+      onProgress?.call(_byteCount / (_video.size + _audio.size));
     });
   }
 }
@@ -40,11 +40,10 @@ class MusicDownloader extends Downloader {
       : super(meta, dlManager);
 
   @override
-  Future<dl.Download> download(
-    String name, [
+  Future<dl.Download> download([
     void Function(double) onProgress,
   ]) {
-    return _dlManager.downloadMusic(name, _meta, _media, (int bytes) {
+    return _dlManager.downloadMusic(_meta.id, _meta, _media, (int bytes) {
       _byteCount += bytes;
       onProgress(_byteCount / (_media.size));
     });
@@ -57,8 +56,8 @@ abstract class DownloaderSet<D extends Downloader> {
 
   DownloaderSet(this._video, this._dlManager);
 
-  D best();
-  D smallest();
+  D best(); // TODO [String maxRes]
+  D smallest(); // TODO [String minRes]
 }
 
 class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
@@ -134,9 +133,4 @@ class YoutubeDL {
   PreDownload prepare(String id) => PreDownload(id, _yt, _dlManager);
 
   void close() => _yt.close();
-}
-
-void doThing() async {
-  var ytdl = YoutubeDL();
-  var dlSet = await ytdl.prepare("asdffdgg").asVideo();
 }
