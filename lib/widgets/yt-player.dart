@@ -17,7 +17,7 @@ class YtPlayer extends StatefulWidget {
 class YtPlayerState extends State<YtPlayer> {
   final _yt = new Youtube();
   final String id;
-  YoutubeVideo _video;
+  Video _video;
 
   YtPlayerState({@required this.id}) {
     _getVideo();

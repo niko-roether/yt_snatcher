@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/youtube.dart';
 
 class YTVideoInfo extends StatelessWidget {
-  final YoutubeVideoMeta videoMeta;
+  final VideoMeta videoMeta;
 
   YTVideoInfo(this.videoMeta);
 
