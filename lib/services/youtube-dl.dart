@@ -56,8 +56,8 @@ abstract class DownloaderSet<D extends Downloader> {
 
   DownloaderSet(this._video, this._dlManager);
 
-  D best(); // TODO [String maxRes]
-  D smallest(); // TODO [String minRes]
+  D best([String maxRes]); // TODO [String maxRes]
+  D smallest([String minRes]); // TODO [String minRes]
 }
 
 class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
@@ -65,7 +65,7 @@ class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
       : super(video, dlManager);
 
   @override
-  VideoDownloader best() {
+  VideoDownloader best([String maxRes]) {
     return VideoDownloader(
       _video,
       _video.videoStreams.highestResolution(),
@@ -75,7 +75,7 @@ class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
   }
 
   @override
-  VideoDownloader smallest() {
+  VideoDownloader smallest([String minRes]) {
     return VideoDownloader(
       _video,
       _video.videoStreams.smallestSize(),
@@ -90,7 +90,7 @@ class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
       : super(video, dlManager);
 
   @override
-  MusicDownloader best() {
+  MusicDownloader best([String maxRes]) {
     return MusicDownloader(
       _video,
       _video.audioStreams.highestBitrate(),
@@ -99,7 +99,7 @@ class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
   }
 
   @override
-  MusicDownloader smallest() {
+  MusicDownloader smallest([String minRes]) {
     return MusicDownloader(
       _video,
       _video.audioStreams.smallestSize(),
