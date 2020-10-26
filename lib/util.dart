@@ -40,7 +40,7 @@ Future<T> retry<T>(Future<T> Function() futureBuilder, int times) async {
 }
 
 final _durationRegex = RegExp(
-    "^([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{2})([0-9]{2})([0-9]{2})\$");
+    "^([0-9]{1,2}):([0-9]{2}):([0-9]{2})\\.([0-9]{2})([0-9]{2})([0-9]{2})\$");
 
 Duration parseDuration(String durationString) {
   var match = _durationRegex.firstMatch(durationString);
