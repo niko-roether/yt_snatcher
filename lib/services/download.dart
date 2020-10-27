@@ -41,8 +41,8 @@ class DownloadMeta {
     });
   }
 
-  void delete() {
-    metaFile?.delete();
+  Future<void> delete() async {
+    await metaFile?.delete();
   }
 
   factory DownloadMeta.fromJson(String json, File file) {
@@ -77,9 +77,11 @@ class Download {
     return data;
   }
 
-  void delete() {
-    meta?.delete();
-    mediaFile?.delete();
+  Future<void> delete() async {
+    await Future.wait([
+      meta?.delete(),
+      mediaFile?.delete(),
+    ]);
   }
 }
 
