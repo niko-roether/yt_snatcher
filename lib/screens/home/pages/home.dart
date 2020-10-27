@@ -20,11 +20,16 @@ class HomeState extends State<Home> {
   }
 
   void _init() async {
-    var preDl = await _ytdl.prepare("fad_0eQIlVo").asVideo();
-    var dl = await preDl.best().download((pr) => print(pr));
-    print(dl.meta.filename);
     var videos = await _dl.getVideos();
     var dls = await videos.getDownloads();
+    await Future.wait(dls.map((d) => d.delete()).toList());
+    print("cleared downloads");
+    print("downloading video...");
+    var preDl = await _ytdl.prepare("fad_0eQIlVo").asVideo();
+    var dl = await preDl.best().download((pr) => print(pr));
+    print("downloaded " + dl.meta.filename);
+    videos = await _dl.getVideos();
+    dls = await videos.getDownloads();
     setState(() => _downloads = dls);
   }
 
