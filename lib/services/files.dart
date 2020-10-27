@@ -55,7 +55,7 @@ class FileManager {
     String name, [
     bool recursive = true,
   ]) async {
-    var targetFile = await createLocalFile(dir, name);
+    var targetFile = await _getLocalFile("$dir/$name");
     return targetFile.create(recursive: recursive);
   }
 
@@ -85,6 +85,6 @@ class FileManager {
   Future<List<File>> getExistingLocalFiles(String dir) async {
     var localPath = await _localPath();
     var entities = await Directory("$localPath$dir").list().toList();
-    return entities.map((e) => File.fromUri(e.uri));
+    return entities.map((e) => File.fromUri(e.uri)).toList();
   }
 }
