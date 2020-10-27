@@ -16,8 +16,6 @@ Stream<List<T>> packeterize<T>(List<T> data, packetSize) {
     var end = min(3 * (i + 1), data.length);
     packets[i] = data.sublist(3 * i, end);
   }
-  print(data);
-  print(packets);
   return Stream.fromIterable(packets);
 }
 
@@ -28,7 +26,8 @@ Future<T> validFuture<T>(Future<T> future) async {
 
 void main() {
   group("FileManager", () {
-    test("Stream Temporary File", () async {
+    const TEST_DIR = "/test";
+    test("streaming temporary files", () async {
       final fmgr = FileManager();
       final data = [1, 4, 5, 6, 3, 5, 6, 7, 5, 4];
       final stream = packeterize(data, 3);
@@ -37,23 +36,68 @@ void main() {
       expect(fileData, isA<List<int>>());
       expect(fileData, equals(data));
     });
-    test("Create Local File", () async {
+    test("creating local files", () async {
       final fmgr = FileManager();
-      var file = await fmgr.createLocalFile("/test", "create_test.txt");
-      validateFile(file, "/test/create_test.txt");
+      var file = await fmgr.createLocalFile(TEST_DIR, "create_test.txt");
+      validateFile(file, "$TEST_DIR/create_test.txt");
       file.delete();
     });
-    test("Stream Local File", () async {
+    test("streaming local files", () async {
       final fmgr = FileManager();
       final data = [3, 5, 3, 5, 43, 2, 54];
       final stream = packeterize(data, 3);
       final file = await validFuture(fmgr.streamLocalFile(
-        "/test",
+        TEST_DIR,
         "stream_test.data",
         stream,
       ));
-      validateFile(file, "/test/stream_test.data");
+      validateFile(file, "$TEST_DIR/stream_test.data");
       expect((await validFuture(file.readAsBytes())).toList(), equals(data));
+      file.delete();
+    });
+    test("writing local files", () async {
+      final fmgr = FileManager();
+      final content = "This is test content.";
+      final file = await validFuture(fmgr.writeLocalFile(
+        TEST_DIR,
+        "write_test.txt",
+        content,
+      ));
+      validateFile(file, "$TEST_DIR/write_test.txt");
+      expect(await file.readAsString(), equals(content));
+      file.delete();
+    });
+
+    test("getting an existing local file", () async {
+      final fmgr = FileManager();
+      final content = "tempowawy test fiwe OwO";
+      final file = await fmgr.writeLocalFile(
+        TEST_DIR,
+        "get_file_test.txt",
+        content,
+      );
+      final gotFile = await validFuture(fmgr.getExistingLocalFile(
+        TEST_DIR,
+        "get_file_test.txt",
+      ));
+      validateFile(gotFile, "$TEST_DIR/get_file_test.txt");
+      expect(await gotFile.readAsString(), equals(content));
+      file.delete();
+    });
+    test("getting all existing local files", () async {
+      final fmgr = FileManager();
+      final numFiles = 5;
+      final getContent = (int i) => "file content $i";
+      final getName = (int i) => "get_files_test_$i.txt";
+      await Future.wait(List.generate(
+        numFiles,
+        (i) => fmgr.writeLocalFile(TEST_DIR, getName(i), getContent(i)),
+      ));
+      final gotFiles = await fmgr.getExistingLocalFiles(TEST_DIR);
+      gotFiles.asMap().forEach((i, f) async {
+        validateFile(f, getName(i));
+        expect(await f.readAsString(), equals(getContent(i)));
+      });
     });
   });
 }
