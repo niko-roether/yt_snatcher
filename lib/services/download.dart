@@ -6,17 +6,6 @@ import 'package:yt_snatcher/services/files.dart' as fs;
 import 'package:yt_snatcher/services/muxer.dart' as mx;
 import 'package:yt_snatcher/services/youtube.dart' as yt;
 
-// var download =
-
-class AlreadyExistsException implements Exception {
-  String name;
-
-  @override
-  String toString() {
-    return "The download $name already exists";
-  }
-}
-
 enum DownloadType { VIDEO, MUSIC }
 
 class DownloadMeta {
@@ -106,7 +95,9 @@ class UnknownDownloadException {
 abstract class DownloadSet {
   final fs.FileManager _fileManager;
   final List<DownloadMeta> _meta;
-  DownloadSet(this._meta, this._fileManager);
+  final String _mediaPath;
+
+  DownloadSet(this._mediaPath, this._meta, this._fileManager);
 
   List<String> get ids => _meta.map((e) => e.id).toList();
 
@@ -134,29 +125,20 @@ abstract class DownloadSet {
     }).toList();
   }
 
-  Future<File> _getMedia(String filename);
+  Future<File> _getMedia(String filename) {
+    if (filename == null) return null;
+    return _fileManager.getExistingLocalFile(_mediaPath, filename);
+  }
 }
 
 class VideoDownloadSet extends DownloadSet {
   VideoDownloadSet(List<DownloadMeta> meta, fs.FileManager fileManager)
-      : super(meta, fileManager);
-
-  @override
-  Future<File> _getMedia(String filename) async {
-    if (filename == null) return null;
-    return _fileManager.getVideoFile(filename);
-  }
+      : super(fs.FileManager.VIDEO_PATH, meta, fileManager);
 }
 
 class MusicDownloadSet extends DownloadSet {
   MusicDownloadSet(List<DownloadMeta> meta, fs.FileManager fileManager)
-      : super(meta, fileManager);
-
-  @override
-  Future<File> _getMedia(String filename) {
-    if (filename == null) return null;
-    return _fileManager.getMusicFile(filename);
-  }
+      : super(fs.FileManager.MUSIC_PATH, meta, fileManager);
 }
 
 class DownloadManager {
@@ -183,7 +165,11 @@ class DownloadManager {
   ]) {
     var audioStream = media.getStream();
     _monitorStreamProgress(audioStream, onProgress);
-    return _fileManager.streamMusicFile(filename, media.getStream());
+    return _fileManager.streamLocalFile(
+      fs.FileManager.MUSIC_PATH,
+      filename,
+      media.getStream(),
+    );
   }
 
   Future<File> _downloadVideoMedia(
@@ -204,7 +190,10 @@ class DownloadManager {
 
     var files = await Future.wait([videoFileFuture, audioFileFuture]);
 
-    var muxedFile = await _fileManager.createVideoFile(filename);
+    var muxedFile = await _fileManager.createLocalFile(
+      fs.FileManager.VIDEO_PATH,
+      filename,
+    );
 
     await _muxer.mux(
       files[0].path,
@@ -217,21 +206,45 @@ class DownloadManager {
     return muxedFile;
   }
 
-  Future<File> _downloadMusicMeta(
-      String id, String mediaFilename, yt.VideoMeta meta) {
+  Future<File> _downloadMeta(
+    String path,
+    String id,
+    String mediaFilename,
+    yt.VideoMeta meta,
+  ) {
     var filename = _metaFileName(id);
-    var dlMeta =
-        DownloadMeta(meta, id, mediaFilename, null, DownloadType.MUSIC);
-    return _fileManager.writeMusicMetaFile(filename, dlMeta.toJson());
+    var dlMeta = DownloadMeta(
+      meta,
+      id,
+      mediaFilename,
+      null,
+      DownloadType.MUSIC,
+    );
+    return _fileManager.writeLocalFile(
+      path,
+      filename,
+      dlMeta.toJson(),
+    );
   }
 
+  Future<File> _downloadMusicMeta(
+    String id,
+    String mediaFilename,
+    yt.VideoMeta meta,
+  ) =>
+      _downloadMeta(
+        fs.FileManager.MUSIC_META_PATH,
+        id,
+        mediaFilename,
+        meta,
+      );
+
   Future<File> _downloadVideoMeta(
-      String id, String mediaFilename, yt.VideoMeta meta) {
-    var filename = _metaFileName(id);
-    var dlMeta =
-        DownloadMeta(meta, id, mediaFilename, null, DownloadType.VIDEO);
-    return _fileManager.writeVideoMetaFile(filename, dlMeta.toJson());
-  }
+    String id,
+    String mediaFilename,
+    yt.VideoMeta meta,
+  ) =>
+      _downloadMeta(fs.FileManager.VIDEO_META_PATH, id, mediaFilename, meta);
 
   Future<Download> downloadMusic(
     String name,
@@ -269,21 +282,30 @@ class DownloadManager {
     return Download(meta, files[1]);
   }
 
-  Future<List<DownloadMeta>> _getMetaData(List<File> metaFiles) {
+  Future<List<DownloadMeta>> _extractMetaData(List<File> metaFiles) {
     return Future.wait(metaFiles
         .map((e) async => DownloadMeta.fromJson(await e.readAsString(), e))
         .toList());
   }
 
+  Future<List<DownloadMeta>> _getMetaData(String path) async {
+    var metaFiles = await _fileManager.getExistingLocalFiles(
+      fs.FileManager.VIDEO_META_PATH,
+    );
+    return _extractMetaData(metaFiles);
+  }
+
   Future<VideoDownloadSet> getVideos() async {
-    var metaFiles = await _fileManager.getVideoMetaFiles();
-    var meta = await _getMetaData(metaFiles);
-    return VideoDownloadSet(meta, _fileManager);
+    return VideoDownloadSet(
+      await _getMetaData(fs.FileManager.VIDEO_META_PATH),
+      _fileManager,
+    );
   }
 
   Future<MusicDownloadSet> getMusic() async {
-    var metaFiles = await _fileManager.getVideoMetaFiles();
-    var meta = await _getMetaData(metaFiles);
-    return MusicDownloadSet(meta, _fileManager);
+    return MusicDownloadSet(
+      await _getMetaData(fs.FileManager.MUSIC_META_PATH),
+      _fileManager,
+    );
   }
 }
