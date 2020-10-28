@@ -1,14 +1,39 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:yt_snatcher/services/youtube.dart' as yt;
 import 'package:yt_snatcher/services/download.dart' as dl;
+
+class DownloadProgress {
+  final double progress;
+  final String stage;
+
+  DownloadProgress(this.progress, this.stage);
+}
 
 abstract class Downloader {
   dl.DownloadManager _dlManager;
   yt.VideoMeta _meta;
   int _byteCount = 0;
+  final StreamController<DownloadProgress> _progressStreamController =
+      StreamController.broadcast();
 
   Downloader(this._meta, this._dlManager);
 
-  Future<dl.Download> download([void Function(double) onProgress]);
+  Stream<DownloadProgress> get progressStream =>
+      _progressStreamController.stream;
+
+  void _progressEvent(double progress, String stage) {
+    var evt = DownloadProgress(progress, stage);
+    _progressStreamController.add(evt);
+  }
+
+  Future<dl.Download> download();
+
+  @mustCallSuper
+  void _completed() {
+    _progressStreamController.close();
+  }
 }
 
 class VideoDownloader extends Downloader {
@@ -23,14 +48,19 @@ class VideoDownloader extends Downloader {
   ) : super(meta, dlManager);
 
   @override
-  Future<dl.Download> download([
-    void Function(double) onProgress,
-  ]) {
-    return _dlManager.downloadVideo(_meta.id, _meta, _video, _audio,
-        (int bytes) {
-      _byteCount += bytes;
-      onProgress?.call(_byteCount / (_video.size + _audio.size));
-    });
+  Future<dl.Download> download() async {
+    var dl = await _dlManager.downloadVideo(
+      _meta.id,
+      _meta,
+      _video,
+      _audio,
+      (int bytes, String stage) {
+        _byteCount += bytes;
+        _progressEvent(_byteCount / (_video.size + _audio.size), stage);
+      },
+    );
+    _completed();
+    return dl;
   }
 }
 
@@ -40,21 +70,22 @@ class MusicDownloader extends Downloader {
       : super(meta, dlManager);
 
   @override
-  Future<dl.Download> download([
-    void Function(double) onProgress,
-  ]) {
-    return _dlManager.downloadMusic(_meta.id, _meta, _media, (int bytes) {
+  Future<dl.Download> download() async {
+    var dl =
+        await _dlManager.downloadMusic(_meta.id, _meta, _media, (int bytes) {
       _byteCount += bytes;
-      onProgress(_byteCount / (_media.size));
+      _progressEvent(_byteCount / (_media.size), "Loading");
     });
+    _completed();
+    return dl;
   }
 }
 
 abstract class DownloaderSet<D extends Downloader> {
-  yt.Video _video;
-  dl.DownloadManager _dlManager;
+  final yt.Video video;
+  final dl.DownloadManager _dlManager;
 
-  DownloaderSet(this._video, this._dlManager);
+  DownloaderSet(this.video, this._dlManager);
 
   D best([String maxRes]); // TODO [String maxRes]
   D smallest([String minRes]); // TODO [String minRes]
@@ -67,9 +98,9 @@ class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
   @override
   VideoDownloader best([String maxRes]) {
     return VideoDownloader(
-      _video,
-      _video.videoStreams.highestResolution(),
-      _video.audioStreams.highestBitrate(),
+      video,
+      video.videoStreams.highestResolution(),
+      video.audioStreams.highestBitrate(),
       _dlManager,
     );
   }
@@ -77,9 +108,9 @@ class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
   @override
   VideoDownloader smallest([String minRes]) {
     return VideoDownloader(
-      _video,
-      _video.videoStreams.smallestSize(),
-      _video.audioStreams.smallestSize(),
+      video,
+      video.videoStreams.smallestSize(),
+      video.audioStreams.smallestSize(),
       _dlManager,
     );
   }
@@ -92,8 +123,8 @@ class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
   @override
   MusicDownloader best([String maxRes]) {
     return MusicDownloader(
-      _video,
-      _video.audioStreams.highestBitrate(),
+      video,
+      video.audioStreams.highestBitrate(),
       _dlManager,
     );
   }
@@ -101,8 +132,8 @@ class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
   @override
   MusicDownloader smallest([String minRes]) {
     return MusicDownloader(
-      _video,
-      _video.audioStreams.smallestSize(),
+      video,
+      video.audioStreams.smallestSize(),
       _dlManager,
     );
   }
