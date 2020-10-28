@@ -206,14 +206,12 @@ class DownloadManager {
     );
 
     // TODO monitor muxing progress
-    onProgress(0, "Processing");
     await _muxer.mux(
       files[0].path,
       files[1].path,
       muxedFile.path,
+      (p) => onProgress(p, "Processing"),
     );
-    onProgress(1, "Processing");
-
     files.forEach((f) => f.delete());
 
     return muxedFile;
