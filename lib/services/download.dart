@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:yt_snatcher/services/background.dart';
 import 'package:yt_snatcher/services/files.dart' as fs;
 import 'package:yt_snatcher/services/muxer.dart' as mx;
 import 'package:yt_snatcher/services/youtube.dart' as yt;
@@ -143,9 +144,17 @@ class MusicDownloadSet extends DownloadSet {
       : super(fs.FileManager.MUSIC_PATH, meta, fileManager);
 }
 
+Future<Download> _createDownload(List<Future<File>> fileFutures) async {
+  var files = await Future.wait(fileFutures);
+  var meta = DownloadMeta.fromJson(await files[0].readAsString(), files[0]);
+  return Download(meta, files[1]);
+}
+
 class DownloadManager {
+  static const _NUM_DOWNLOAD_THREADS = 3;
   final _fileManager = fs.FileManager();
   final _muxer = mx.Muxer();
+  final _threadPool = ThreadPool(_NUM_DOWNLOAD_THREADS);
 
   static String getFilename(String name, yt.Media media) =>
       "$name.${media.container}";
@@ -162,6 +171,18 @@ class DownloadManager {
 
   String _metaFileName(String name) => "$name.json";
   String _muxedFileName(String name) => "$name.mp4";
+
+  Future<Download> _download(
+    Future<File> metaFileFuture,
+    Future<File> mediaFileFuture, {
+    int load,
+  }) {
+    return _threadPool.run(
+      _createDownload,
+      [metaFileFuture, mediaFileFuture],
+      load: load,
+    );
+  }
 
   Future<File> _downloadMusicMedia(
     String filename,
@@ -264,9 +285,10 @@ class DownloadManager {
     void Function(int) onProgress,
   ]) {
     var filename = "$name.${media.container}";
-    return _getDownload(
+    return _download(
       _downloadMusicMeta(name, filename, meta),
       _downloadMusicMedia(filename, media, onProgress),
+      load: 1,
     );
   }
 
@@ -278,19 +300,11 @@ class DownloadManager {
     void Function(int, String) onProgress,
   ]) {
     var filename = _muxedFileName(name);
-    return _getDownload(
+    return _download(
       _downloadVideoMeta(name, filename, meta),
       _downloadVideoMedia(filename, video, audio, onProgress),
+      load: 3,
     );
-  }
-
-  Future<Download> _getDownload(
-    Future<File> metaFileFuture,
-    Future<File> mediaFileFuture,
-  ) async {
-    var files = await Future.wait([metaFileFuture, mediaFileFuture]);
-    var meta = DownloadMeta.fromJson(await files[0].readAsString(), files[0]);
-    return Download(meta, files[1]);
   }
 
   Future<List<DownloadMeta>> _extractMetaData(List<File> metaFiles) {
@@ -318,5 +332,9 @@ class DownloadManager {
       await _getMetaData(fs.FileManager.MUSIC_META_PATH),
       _fileManager,
     );
+  }
+
+  void close() {
+    _threadPool.close();
   }
 }
