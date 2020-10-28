@@ -5,9 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:yt_snatcher/services/files.dart';
 
 Future<void> validateFile(File file, String expectedPath) async {
-  expect(file, isNotNull);
-  expect(file.path, endsWith(expectedPath));
-  expect(await file.exists(), isTrue);
+  expect(file, isNotNull, reason: "The file should not be null");
+  expect(
+    file.path,
+    endsWith(expectedPath),
+    reason: "The filepath should end with $expectedPath",
+  );
+  expect(await file.exists(), isTrue, reason: "The file should exist");
 }
 
 Stream<List<T>> packeterize<T>(List<T> data, packetSize) {
@@ -20,7 +24,11 @@ Stream<List<T>> packeterize<T>(List<T> data, packetSize) {
 }
 
 Future<T> validFuture<T>(Future<T> future) async {
-  expect(future, completes);
+  expect(
+    future,
+    completes,
+    reason: "The future should complete without throwing an error",
+  );
   return future;
 }
 
@@ -33,8 +41,11 @@ void main() {
       final stream = packeterize(data, 3);
       final file = await validFuture(fmgr.streamTempFile("test.data", stream));
       var fileData = (await validFuture(file.readAsBytes())).toList();
-      expect(fileData, isA<List<int>>());
-      expect(fileData, equals(data));
+      expect(
+        fileData,
+        equals(data),
+        reason: "The file should contain the same data that was provided",
+      );
     });
     test("creating local files", () async {
       final fmgr = FileManager();
@@ -52,7 +63,11 @@ void main() {
         stream,
       ));
       validateFile(file, "$TEST_DIR/stream_test.data");
-      expect((await validFuture(file.readAsBytes())).toList(), equals(data));
+      expect(
+        (await file.readAsBytes()).toList(),
+        equals(data),
+        reason: "The file should contain the same data that was provided",
+      );
       file.delete();
     });
     test("writing local files", () async {
@@ -64,7 +79,11 @@ void main() {
         content,
       ));
       validateFile(file, "$TEST_DIR/write_test.txt");
-      expect(await file.readAsString(), equals(content));
+      expect(
+        await file.readAsString(),
+        equals(content),
+        reason: "The file should contain the same data that was provided",
+      );
       file.delete();
     });
 
@@ -81,7 +100,11 @@ void main() {
         "get_file_test.txt",
       ));
       validateFile(gotFile, "$TEST_DIR/get_file_test.txt");
-      expect(await gotFile.readAsString(), equals(content));
+      expect(
+        await gotFile.readAsString(),
+        equals(content),
+        reason: "The file should contain the same data that was provided",
+      );
       file.delete();
     });
     test("getting all existing local files", () async {
@@ -96,7 +119,11 @@ void main() {
       final gotFiles = await fmgr.getExistingLocalFiles(TEST_DIR);
       gotFiles.asMap().forEach((i, f) async {
         validateFile(f, getName(i));
-        expect(await f.readAsString(), equals(getContent(i)));
+        expect(
+          await f.readAsString(),
+          equals(getContent(i)),
+          reason: "The file should contain the same data that was provided",
+        );
       });
     });
   });
