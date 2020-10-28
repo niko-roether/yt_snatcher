@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/youtube-dl.dart';
 import 'package:yt_snatcher/services/youtube.dart';
 import 'package:yt_snatcher/widgets/download_progress_indicator.dart';
@@ -32,13 +32,16 @@ class DownloaderViewState extends State<DownloaderView> {
 
   @override
   Widget build(BuildContext context) {
-    return DownloadProgressIndicator(
-      title: _meta.title,
-      subtitle: _meta.channelName,
-      progress: _progress,
-      stage: _stage,
-      thumbnailUrl: _meta.thumbnails.lowRes,
-      semanticName: _meta.title,
+    return Padding(
+      child: DownloadProgressIndicator(
+        title: _meta.title,
+        subtitle: _meta.channelName,
+        progress: _progress,
+        stage: _stage,
+        thumbnailUrl: _meta.thumbnails.mediumRes,
+        semanticName: _meta.title,
+      ),
+      padding: EdgeInsets.all(4),
     );
   }
 }

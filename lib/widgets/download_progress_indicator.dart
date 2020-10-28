@@ -18,7 +18,7 @@ class DownloadProgressIndicator extends StatelessWidget {
       @required this.progress,
       this.stage = "Loading",
       this.thumbnailUrl,
-      this.thumbnailWidth = 10,
+      this.thumbnailWidth = 100,
       this.semanticName = "content"});
 
   String get _percent {
@@ -29,18 +29,34 @@ class DownloadProgressIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Expanded(
-      child: Column(
-        children: [
-          Text(this.title, overflow: TextOverflow.ellipsis),
-          Text(this.subtitle ?? Container()),
-          LinearProgressIndicator(
-            value: progress,
-            semanticsLabel: "Downloading $semanticName",
-            semanticsValue: _percent,
-          ),
-          Text("${capitalize(stage)}... $_percent")
-        ],
-        mainAxisSize: MainAxisSize.min,
+      child: Padding(
+        child: Column(
+          children: [
+            Text(
+              this.title,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            Text(this.subtitle ?? Container()),
+            Padding(
+              child: LinearProgressIndicator(
+                value: progress,
+                semanticsLabel: "Downloading $semanticName",
+                semanticsValue: _percent,
+              ),
+              padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+            ),
+            Align(
+              child: Text(
+                "${capitalize(stage)}... $_percent",
+              ),
+              alignment: Alignment.center,
+            )
+          ],
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 8),
       ),
     );
     return Conditional.single(
