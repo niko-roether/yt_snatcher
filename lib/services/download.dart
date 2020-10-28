@@ -150,11 +150,14 @@ class DownloadManager {
   static String getFilename(String name, yt.Media media) =>
       "$name.${media.container}";
 
-  void _monitorStreamProgress(
+  Stream<List<int>> _monitoredStream(
     Stream<List<int>> stream,
     void Function(int) onProgress,
   ) {
-    stream.listen((packet) => onProgress?.call(packet.length));
+    return stream.asyncMap((packet) {
+      onProgress?.call(packet.length);
+      return packet;
+    });
   }
 
   String _metaFileName(String name) => "$name.json";
@@ -165,30 +168,34 @@ class DownloadManager {
     yt.AudioMedia media, [
     void Function(int) onProgress,
   ]) {
-    var audioStream = media.getStream();
-    _monitorStreamProgress(audioStream, onProgress);
+    var audioStream = _monitoredStream(media.getStream(), onProgress);
     return _fileManager.streamLocalFile(
-      fs.FileManager.MUSIC_PATH,
-      filename,
-      media.getStream(),
-    );
+        fs.FileManager.MUSIC_PATH, filename, audioStream);
   }
 
   Future<File> _downloadVideoMedia(
     String filename,
     yt.VideoMedia video,
     yt.AudioMedia audio, [
-    void Function(int) onProgress,
+    void Function(int, String) onProgress,
   ]) async {
-    var videoStream = video.getStream();
-    _monitorStreamProgress(videoStream, onProgress);
+    var videoStream = _monitoredStream(
+      video.getStream(),
+      (p) => onProgress(p, "Loading"),
+    );
     var videoFileFuture = _fileManager.streamTempFile(
-        "video_$filename.${video.container}", videoStream);
+      "video_$filename.${video.container}",
+      videoStream,
+    );
 
-    var audioStream = audio.getStream();
-    _monitorStreamProgress(audioStream, onProgress);
+    var audioStream = _monitoredStream(
+      audio.getStream(),
+      (p) => onProgress(p, "Loading"),
+    );
     var audioFileFuture = _fileManager.streamTempFile(
-        "audio_$filename.${audio.container}", audioStream);
+      "audio_$filename.${audio.container}",
+      audioStream,
+    );
 
     var files = await Future.wait([videoFileFuture, audioFileFuture]);
     if (files.any((f) => f == null)) throw "Failed to get media files";
@@ -198,11 +205,14 @@ class DownloadManager {
       filename,
     );
 
+    // TODO monitor muxing progress
+    onProgress(0, "Processing");
     await _muxer.mux(
       files[0].path,
       files[1].path,
       muxedFile.path,
     );
+    onProgress(1, "Processing");
 
     files.forEach((f) => f.delete());
 
@@ -267,7 +277,7 @@ class DownloadManager {
     yt.VideoMeta meta,
     yt.VideoMedia video,
     yt.AudioMedia audio, [
-    void Function(int) onProgress,
+    void Function(int, String) onProgress,
   ]) {
     var filename = _muxedFileName(name);
     return _getDownload(
