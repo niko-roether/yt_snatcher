@@ -22,6 +22,7 @@ class DownloadProgressIndicator extends StatelessWidget {
       this.semanticName = "content"});
 
   String get _percent {
+    if (progress == null) return "";
     var numeric = (progress * 100).floor();
     return "$numeric%";
   }
