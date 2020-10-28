@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/youtube-dl.dart';
 import 'package:yt_snatcher/services/youtube.dart';
