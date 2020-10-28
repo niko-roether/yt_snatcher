@@ -11,15 +11,20 @@ class DownloadProgressIndicator extends StatelessWidget {
   final String thumbnailUrl;
   final double thumbnailWidth;
   final String semanticName;
+  final Color bgColor;
+  final Animation<Color> barColor;
 
-  DownloadProgressIndicator(
-      {@required this.title,
-      this.subtitle,
-      @required this.progress,
-      this.stage = "Loading",
-      this.thumbnailUrl,
-      this.thumbnailWidth = 100,
-      this.semanticName = "content"});
+  DownloadProgressIndicator({
+    @required this.title,
+    this.subtitle,
+    @required this.progress,
+    this.stage = "Loading",
+    this.thumbnailUrl,
+    this.thumbnailWidth = 100,
+    this.semanticName = "content",
+    this.bgColor,
+    this.barColor,
+  });
 
   String get _percent {
     if (progress == null) return "";
@@ -44,6 +49,8 @@ class DownloadProgressIndicator extends StatelessWidget {
                 value: progress,
                 semanticsLabel: "Downloading $semanticName",
                 semanticsValue: _percent,
+                backgroundColor: bgColor,
+                valueColor: barColor,
               ),
               padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
             ),
