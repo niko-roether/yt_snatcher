@@ -41,10 +41,12 @@ class HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     if (_downloads == null) {
-      if (_meta == null || _downloader == null)
-        return Center(child: CircularProgressIndicator());
       return Center(
-        child: DownloaderView(downloader: _downloader, meta: _meta),
+        child: DownloaderView(
+          downloader: _downloader,
+          meta: _meta,
+          pending: _meta == null || _downloader == null,
+        ),
       );
     }
     return BetterPlayer.file(_downloads[0].mediaFile.path);
