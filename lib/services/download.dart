@@ -191,6 +191,7 @@ class DownloadManager {
         "audio_$filename.${audio.container}", audioStream);
 
     var files = await Future.wait([videoFileFuture, audioFileFuture]);
+    if (files.any((f) => f == null)) throw "Failed to get media files";
 
     var muxedFile = await _fileManager.createLocalFile(
       fs.FileManager.VIDEO_PATH,
