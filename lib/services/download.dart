@@ -144,8 +144,8 @@ class MusicDownloadSet extends DownloadSet {
 }
 
 class DownloadManager {
-  var _fileManager = fs.FileManager();
-  var _muxer = mx.Muxer();
+  final _fileManager = fs.FileManager();
+  final _muxer = mx.Muxer();
 
   static String getFilename(String name, yt.Media media) =>
       "$name.${media.container}";
