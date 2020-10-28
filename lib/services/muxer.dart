@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
@@ -23,9 +24,22 @@ class MuxerException implements Exception {
 class Muxer {
   final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
 
-  Future<File> mux(String file1, String file2, String out) async {
-    File(out).create(recursive: true);
+  Future<File> mux(
+    String file1,
+    String file2,
+    String out, [
+    void Function(int) onProgress,
+  ]) async {
+    var outFile = File(out);
+    outFile.create(recursive: true);
+    var progressTimer = Timer.periodic(Duration(seconds: 1), (i) async {
+      // var size = await outFile.length();
+      // onProgress?.call(size);
+      // TODO somehow get progress here????
+      onProgress(null);
+    });
     int errcode = await _ffmpeg.execute("-y -i $file1 -i $file2 $out");
+    progressTimer.cancel();
     switch (errcode) {
       case 0:
         return Future.delayed(Duration(milliseconds: 100), () => File(out));
