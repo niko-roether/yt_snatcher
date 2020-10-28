@@ -44,9 +44,9 @@ class FileManager {
     return file;
   }
 
-  Future<File> streamTempFile(String name, Stream<List<int>> stream) {
+  Future<File> streamTempFile(String name, Stream<List<int>> stream) async {
     var targetFile = File("$_tempPath/$name");
-    targetFile.create(recursive: true);
+    await targetFile.create(recursive: true);
     return _streamFile(targetFile, stream);
   }
 
