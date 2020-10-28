@@ -15,6 +15,18 @@ class ThumbnailSet {
   String get highRes => _thumbnailSet.highResUrl;
   String get maxRes => _thumbnailSet.maxResUrl;
   String get standartRes => _thumbnailSet.standardResUrl;
+
+  factory ThumbnailSet.fromId(String id) {
+    return ThumbnailSet(yte.ThumbnailSet(id));
+  }
+
+  bool operator ==(Object other) {
+    if (other is ThumbnailSet) return _thumbnailSet == other._thumbnailSet;
+    return false;
+  }
+
+  @override
+  int get hashCode => super.hashCode;
 }
 
 class Media<I extends yte.StreamInfo> {
