@@ -41,8 +41,7 @@ class Media<I extends yte.StreamInfo> {
   int get size => _info.size.totalBytes;
   int get bitrate => _info.bitrate.bitsPerSecond;
 
-  Stream<List<int>> getStream() =>
-      _yt.videos.streamsClient.get(_info).asBroadcastStream();
+  Stream<List<int>> getStream() => _yt.videos.streamsClient.get(_info);
 }
 
 class AudioMedia extends Media<yte.AudioStreamInfo> {
