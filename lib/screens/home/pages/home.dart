@@ -2,6 +2,8 @@ import 'package:better_player/better_player.dart';
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/download.dart';
 import 'package:yt_snatcher/services/youtube-dl.dart';
+import 'package:yt_snatcher/services/youtube.dart';
+import 'package:yt_snatcher/widgets/downloader_view.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -13,6 +15,8 @@ class Home extends StatefulWidget {
 class HomeState extends State<Home> {
   final _dl = DownloadManager();
   final _ytdl = YoutubeDL();
+  VideoMeta _meta;
+  Downloader _downloader;
   List<Download> _downloads;
 
   HomeState() {
@@ -20,22 +24,29 @@ class HomeState extends State<Home> {
   }
 
   void _init() async {
-    var videos = await _dl.getVideos();
-    var dls = await videos.getDownloads();
-    await Future.wait(dls.map((d) => d.delete()).toList());
-    print("cleared downloads");
     print("downloading video...");
     var preDl = await _ytdl.prepare("fad_0eQIlVo").asVideo();
-    var dl = await preDl.best().download((pr) => print(pr));
+    var downloader = preDl.best();
+    setState(() {
+      _meta = preDl.video;
+      _downloader = downloader;
+    });
+    var dl = await downloader.download();
     print("downloaded " + dl.meta.filename);
-    videos = await _dl.getVideos();
-    dls = await videos.getDownloads();
+    var videos = await _dl.getVideos();
+    var dls = await videos.getDownloads();
     setState(() => _downloads = dls);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_downloads == null) return Center(child: CircularProgressIndicator());
+    if (_downloads == null) {
+      if (_meta == null || _downloader == null)
+        return Center(child: CircularProgressIndicator());
+      return Center(
+        child: DownloaderView(downloader: _downloader, meta: _meta),
+      );
+    }
     return BetterPlayer.file(_downloads[0].mediaFile.path);
   }
 }
