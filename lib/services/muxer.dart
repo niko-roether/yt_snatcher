@@ -38,7 +38,8 @@ class Muxer {
       // TODO somehow get progress here????
       onProgress(null);
     });
-    int errcode = await _ffmpeg.execute("-y -i $file1 -i $file2 $out");
+    int errcode = await _ffmpeg
+        .execute("-y -i $file1 -i $file2 $out -acodec copy -vcodec copy");
     progressTimer.cancel();
     switch (errcode) {
       case 0:
