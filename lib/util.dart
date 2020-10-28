@@ -59,3 +59,7 @@ Duration parseDuration(String durationString) {
     microseconds: int.parse(match.group(6)),
   );
 }
+
+String capitalize(String str) {
+  return str.substring(0, 1).toUpperCase() + str.substring(1);
+}
