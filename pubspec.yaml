@@ -16,6 +16,7 @@ dependencies:
   better_player: ^0.0.29+1
   flutter_ffmpeg: ^0.3.0
   path_provider: ^1.6.21
+  isolate: ^2.0.3
 
 
 dev_dependencies:
