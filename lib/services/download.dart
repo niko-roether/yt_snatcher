@@ -144,12 +144,6 @@ class MusicDownloadSet extends DownloadSet {
       : super(fs.FileManager.MUSIC_PATH, meta, fileManager);
 }
 
-Future<Download> _createDownload(List<Future<File>> fileFutures) async {
-  var files = await Future.wait(fileFutures);
-  var meta = DownloadMeta.fromJson(await files[0].readAsString(), files[0]);
-  return Download(meta, files[1]);
-}
-
 class DownloadManager {
   static const _NUM_DOWNLOAD_THREADS = 3;
   final _fileManager = fs.FileManager();
@@ -158,6 +152,14 @@ class DownloadManager {
 
   static String getFilename(String name, yt.Media media) =>
       "$name.${media.container}";
+
+  static Future<Download> _createDownload(
+    List<Future<File>> fileFutures,
+  ) async {
+    var files = await Future.wait(fileFutures);
+    var meta = DownloadMeta.fromJson(await files[0].readAsString(), files[0]);
+    return Download(meta, files[1]);
+  }
 
   Stream<List<int>> _monitoredStream(
     Stream<List<int>> stream,
