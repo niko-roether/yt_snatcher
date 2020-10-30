@@ -3,15 +3,6 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
-class FileDoesNotExistException implements Exception {
-  String path;
-
-  FileDoesNotExistException(this.path);
-
-  @override
-  String toString() => "The file at $path does not exist.";
-}
-
 class FileManager {
   static final _tempPath = "${Directory.systemTemp.path}/yt-snatcher";
   static const _META_SUBDIR = "/meta";
