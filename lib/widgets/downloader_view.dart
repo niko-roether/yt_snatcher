@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/youtube-dl.dart';
 import 'package:yt_snatcher/services/youtube.dart';
@@ -23,11 +25,13 @@ class DownloaderView extends StatefulWidget {
 class DownloaderViewState extends State<DownloaderView> {
   double _progress = 0;
   String _stage = "Preparing";
+  StreamSubscription _subscription;
 
   @override
   Widget build(BuildContext context) {
     if (widget.downloader != null) {
-      widget.downloader.progressStream.listen(
+      _subscription?.cancel();
+      _subscription = widget.downloader.progressStream.listen(
         (event) => setState(() {
           _progress = event.progress;
           _stage = event.stage;
@@ -46,5 +50,11 @@ class DownloaderViewState extends State<DownloaderView> {
       ),
       padding: EdgeInsets.all(4),
     );
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
