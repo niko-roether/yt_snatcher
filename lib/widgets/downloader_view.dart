@@ -16,38 +16,33 @@ class DownloaderView extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DownloaderViewState(downloader, meta, pending);
+    return DownloaderViewState();
   }
 }
 
 class DownloaderViewState extends State<DownloaderView> {
-  final Downloader _downloader;
-  final VideoMeta _meta;
-  final bool _pending;
   double _progress = 0;
   String _stage = "Preparing";
 
-  DownloaderViewState(this._downloader, this._meta, this._pending) {
-    if (_downloader == null) return;
-    _downloader.progressStream.listen(
-      (event) => setState(() {
-        _progress = event.progress;
-        _stage = event.stage;
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (widget.downloader != null) {
+      widget.downloader.progressStream.listen(
+        (event) => setState(() {
+          _progress = event.progress;
+          _stage = event.stage;
+        }),
+      );
+    }
     return Padding(
       child: DownloadProgressIndicator(
-        title: _meta.title ?? "Loading...",
-        subtitle: _meta.channelName ?? "",
-        progress: _pending ? null : _progress,
-        stage: _pending ? "Pending" : _stage,
-        thumbnailUrl: _meta.thumbnails?.mediumRes ?? null,
-        semanticName: _meta.title ?? "content",
-        bgColor: _pending ? Colors.grey : null,
+        title: widget.meta?.title ?? "Loading...",
+        subtitle: widget.meta?.channelName ?? "",
+        progress: widget.pending ? null : _progress,
+        stage: widget.pending ? "Pending" : _stage,
+        thumbnailUrl: widget.meta?.thumbnails?.mediumRes ?? null,
+        semanticName: widget.meta?.title ?? "content",
+        bgColor: widget.pending ? Colors.grey : null,
       ),
       padding: EdgeInsets.all(4),
     );
