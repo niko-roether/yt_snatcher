@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
@@ -21,18 +22,17 @@ class FileManager {
   static const MUSIC_PATH = "/music";
   static const MUSIC_META_PATH = MUSIC_PATH + _META_SUBDIR;
   static const MUSIC_THUMBNAIL_PATH = MUSIC_PATH + _THUMBNAIL_SUBDIR;
-  static String __localPath;
+  FutureOr<String> _localPath;
 
-  Future<String> _localPath() async {
-    if (__localPath == null)
-      return __localPath = (await getApplicationDocumentsDirectory())
-          .path
-          .replaceAll(new RegExp("\/\$"), "");
-    return __localPath;
+  Future<String> getLocalPath() => _localPath;
+
+  FileManager([this._localPath]) {
+    if (_localPath == null)
+      _localPath = getApplicationSupportDirectory().then((dir) => dir.path);
   }
 
   Future<File> _getLocalFile(String path) async {
-    var localPath = await _localPath();
+    var localPath = await _localPath;
     return File("$localPath$path");
   }
 
@@ -83,7 +83,7 @@ class FileManager {
       _getExistingFile("$dir/$filename");
 
   Future<List<File>> getExistingLocalFiles(String dir) async {
-    var localPath = await _localPath();
+    var localPath = await _localPath;
     var entities = await Directory("$localPath$dir").list().toList();
     return entities.map((e) => File.fromUri(e.uri)).toList();
   }
