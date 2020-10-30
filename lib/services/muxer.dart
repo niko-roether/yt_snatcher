@@ -10,7 +10,7 @@ class MuxerUserCancelException implements Exception {
   }
 }
 
-class MuxerException implements Exception {
+class MuxerException extends Error {
   int errcode;
 
   MuxerException(this.errcode);

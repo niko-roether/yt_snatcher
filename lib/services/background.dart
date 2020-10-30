@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:isolate';
 
-class InvalidTaskReturnTypeException implements Exception {
+class InvalidTaskReturnTypeError extends Error {
   final Type type;
 
-  InvalidTaskReturnTypeException(this.type);
+  InvalidTaskReturnTypeError(this.type);
 
   @override
   String toString() => "Task returned value of invalid type $type";
@@ -56,7 +56,7 @@ class Task<A, R> {
         listener?.call(data["value"]);
       } else {
         if (!(data is R) && !ignoreInvalidType)
-          throw InvalidTaskReturnTypeException(data.runtimeType);
+          throw InvalidTaskReturnTypeError(data.runtimeType);
         _log("Task returned value $data");
         _completer.complete(data);
       }
