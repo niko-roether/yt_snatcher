@@ -29,7 +29,14 @@ class ThumbnailSet {
   int get hashCode => super.hashCode;
 }
 
+class MediaInfo<I extends yte.StreamInfo> {
+  final I _info;
+
+  MediaInfo(this._info);
+}
+
 class Media<I extends yte.StreamInfo> {
+  // TODO make YoutubeExplode instances static
   final yte.YoutubeExplode _yt;
   final I _info;
 
@@ -42,6 +49,7 @@ class Media<I extends yte.StreamInfo> {
   int get bitrate => _info.bitrate.bitsPerSecond;
 
   Stream<List<int>> getStream() => _yt.videos.streamsClient.get(_info);
+  MediaInfo<I> getInfo() => MediaInfo(_info);
 }
 
 class AudioMedia extends Media<yte.AudioStreamInfo> {
@@ -197,7 +205,7 @@ class Video extends VideoMeta {
 }
 
 class Youtube {
-  final yte.YoutubeExplode _yt = yte.YoutubeExplode();
+  static final yte.YoutubeExplode _yt = yte.YoutubeExplode();
 
   Future<VideoMeta> getVideoMeta(String id) async {
     return VideoMeta(await retry(() => _yt.videos.get(id), 10));
@@ -209,6 +217,10 @@ class Youtube {
       await retry(() => _yt.videos.streamsClient.getManifest(id), 10),
       _yt,
     );
+  }
+
+  Stream<List<int>> getStreamFromInfo(MediaInfo info) {
+    return _yt.videos.streamsClient.get(info._info);
   }
 
   void close() {
