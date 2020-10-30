@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/youtube.dart' as yt;
-import 'package:yt_snatcher/services/download.dart' as dl;
+import 'package:yt_snatcher/services/download_magager.dart' as dlm;
+import 'downloader.dart' as dl;
 
 class DownloadProgress {
   final double progress;
@@ -12,23 +13,24 @@ class DownloadProgress {
 }
 
 abstract class Downloader {
-  dl.DownloadManager _dlManager;
+  dl.Downloader _downloader;
   yt.VideoMeta _meta;
   int _byteCount = 0;
   final StreamController<DownloadProgress> _progressStreamController =
       StreamController.broadcast();
 
-  Downloader(this._meta, this._dlManager);
+  Downloader(this._meta, this._downloader);
 
   Stream<DownloadProgress> get progressStream =>
       _progressStreamController.stream;
 
   void _progressEvent(double progress, String stage) {
+    if (_progressStreamController.isClosed) return;
     var evt = DownloadProgress(progress, stage);
     _progressStreamController.add(evt);
   }
 
-  Future<dl.Download> download();
+  Future<dlm.Download> download();
 
   @mustCallSuper
   void _completed() {
@@ -44,12 +46,12 @@ class VideoDownloader extends Downloader {
     yt.VideoMeta meta,
     this._video,
     this._audio,
-    dl.DownloadManager dlManager,
-  ) : super(meta, dlManager);
+    dl.Downloader downloader,
+  ) : super(meta, downloader);
 
   @override
-  Future<dl.Download> download() async {
-    var dl = await _dlManager.downloadVideo(
+  Future<dlm.Download> download() async {
+    var dl = await _downloader.downloadVideo(
       _meta.id,
       _meta,
       _video,
@@ -71,13 +73,13 @@ class VideoDownloader extends Downloader {
 
 class MusicDownloader extends Downloader {
   yt.AudioMedia _media;
-  MusicDownloader(yt.VideoMeta meta, this._media, dl.DownloadManager dlManager)
-      : super(meta, dlManager);
+  MusicDownloader(yt.VideoMeta meta, this._media, dl.Downloader downloader)
+      : super(meta, downloader);
 
   @override
-  Future<dl.Download> download() async {
+  Future<dlm.Download> download() async {
     var dl =
-        await _dlManager.downloadMusic(_meta.id, _meta, _media, (int bytes) {
+        await _downloader.downloadMusic(_meta.id, _meta, _media, (int bytes) {
       _byteCount += bytes;
       _progressEvent(_byteCount / (_media.size), "Loading");
     });
@@ -88,17 +90,17 @@ class MusicDownloader extends Downloader {
 
 abstract class DownloaderSet<D extends Downloader> {
   final yt.Video video;
-  final dl.DownloadManager _dlManager;
+  final dl.Downloader _downloader;
 
-  DownloaderSet(this.video, this._dlManager);
+  DownloaderSet(this.video, this._downloader);
 
   D best([String maxRes]); // TODO [String maxRes]
   D smallest([String minRes]); // TODO [String minRes]
 }
 
 class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
-  VideoDownloaderSet(yt.Video video, dl.DownloadManager dlManager)
-      : super(video, dlManager);
+  VideoDownloaderSet(yt.Video video, dl.Downloader downloader)
+      : super(video, downloader);
 
   @override
   VideoDownloader best([String maxRes]) {
@@ -106,7 +108,7 @@ class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
       video,
       video.videoStreams.highestResolution(),
       video.audioStreams.highestBitrate(),
-      _dlManager,
+      _downloader,
     );
   }
 
@@ -116,21 +118,21 @@ class VideoDownloaderSet extends DownloaderSet<VideoDownloader> {
       video,
       video.videoStreams.smallestSize(),
       video.audioStreams.smallestSize(),
-      _dlManager,
+      _downloader,
     );
   }
 }
 
 class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
-  MusicDownloaderSet(yt.Video video, dl.DownloadManager dlManager)
-      : super(video, dlManager);
+  MusicDownloaderSet(yt.Video video, dl.Downloader downloader)
+      : super(video, downloader);
 
   @override
   MusicDownloader best([String maxRes]) {
     return MusicDownloader(
       video,
       video.audioStreams.highestBitrate(),
-      _dlManager,
+      _downloader,
     );
   }
 
@@ -139,7 +141,7 @@ class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
     return MusicDownloader(
       video,
       video.audioStreams.smallestSize(),
-      _dlManager,
+      _downloader,
     );
   }
 }
@@ -147,26 +149,26 @@ class MusicDownloaderSet extends DownloaderSet<MusicDownloader> {
 class PreDownload {
   String id;
   yt.Youtube _yt;
-  dl.DownloadManager _dlManager;
+  dl.Downloader _downloader;
 
-  PreDownload(this.id, this._yt, this._dlManager);
+  PreDownload(this.id, this._yt, this._downloader);
 
   Future<yt.Video> _getVideo() => _yt.getVideo(id);
 
   Future<DownloaderSet> asVideo() async {
-    return VideoDownloaderSet(await _getVideo(), _dlManager);
+    return VideoDownloaderSet(await _getVideo(), _downloader);
   }
 
   Future<DownloaderSet> asMusic() async {
-    return MusicDownloaderSet(await _getVideo(), _dlManager);
+    return MusicDownloaderSet(await _getVideo(), _downloader);
   }
 }
 
 class YoutubeDL {
   final _yt = yt.Youtube();
-  final _dlManager = dl.DownloadManager();
+  final _downloader = dl.Downloader();
 
-  PreDownload prepare(String id) => PreDownload(id, _yt, _dlManager);
+  PreDownload prepare(String id) => PreDownload(id, _yt, _downloader);
 
   void close() => _yt.close();
 }
