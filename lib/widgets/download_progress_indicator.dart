@@ -34,45 +34,43 @@ class DownloadProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = Expanded(
-      child: Padding(
-        child: Column(
-          children: [
-            Text(
-              this.title,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    final content = Padding(
+      child: Column(
+        children: [
+          Text(
+            this.title,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          Text(this.subtitle ?? Container()),
+          Padding(
+            child: LinearProgressIndicator(
+              value: progress,
+              semanticsLabel: "Downloading $semanticName",
+              semanticsValue: _percent,
+              backgroundColor: bgColor,
+              valueColor: barColor,
             ),
-            Text(this.subtitle ?? Container()),
-            Padding(
-              child: LinearProgressIndicator(
-                value: progress,
-                semanticsLabel: "Downloading $semanticName",
-                semanticsValue: _percent,
-                backgroundColor: bgColor,
-                valueColor: barColor,
-              ),
-              padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+            padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+          ),
+          Align(
+            child: Text(
+              "${capitalize(stage)}... $_percent",
             ),
-            Align(
-              child: Text(
-                "${capitalize(stage)}... $_percent",
-              ),
-              alignment: Alignment.center,
-            )
-          ],
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 8),
+            alignment: Alignment.center,
+          )
+        ],
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
       ),
+      padding: EdgeInsets.symmetric(horizontal: 8),
     );
     return Conditional.single(
       context: context,
       conditionBuilder: (c) => thumbnailUrl != null,
       widgetBuilder: (c) => Row(children: [
         Image.network(thumbnailUrl, width: thumbnailWidth),
-        content,
+        Expanded(child: content),
       ]),
       fallbackBuilder: (c) => content,
     );
