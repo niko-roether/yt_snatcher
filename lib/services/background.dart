@@ -53,7 +53,6 @@ class Task<A, R> {
         else
           _log("Task created more than one send port! Ignoring...");
       } else if (data is Map<String, dynamic> && data["type"] == "event") {
-        _log("Event: $data");
         listener?.call(data["value"]);
       } else {
         if (!(data is R) && !ignoreInvalidType)
