@@ -17,18 +17,19 @@ class Screen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: this.title, actions: [
-          Conditional.single(
-            context: context,
-            conditionBuilder: (context) => this.showSettings,
-            widgetBuilder: (context) => (IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () => Navigator.pushNamed(context, "/settings"),
-            )),
-            fallbackBuilder: (context) => Container(),
-          ),
-        ]),
-        body: content,
-        bottomNavigationBar: navigationBar);
+      appBar: AppBar(title: this.title, actions: [
+        Conditional.single(
+          context: context,
+          conditionBuilder: (context) => this.showSettings,
+          widgetBuilder: (context) => (IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () => Navigator.pushNamed(context, "/settings"),
+          )),
+          fallbackBuilder: (context) => Container(),
+        ),
+      ]),
+      body: SizedBox(child: content, width: MediaQuery.of(context).size.width),
+      bottomNavigationBar: navigationBar,
+    );
   }
 }
