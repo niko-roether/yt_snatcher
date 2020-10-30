@@ -43,7 +43,7 @@ class Muxer {
     progressTimer.cancel();
     switch (errcode) {
       case 0:
-        return Future.delayed(Duration(milliseconds: 100), () => File(out));
+        return File(out);
       case 255:
         throw MuxerUserCancelException();
       default:
