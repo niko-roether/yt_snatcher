@@ -34,15 +34,16 @@ class DownloadProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     final content = Padding(
       child: Column(
         children: [
           Text(
             this.title,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: theme.textTheme.subtitle1,
           ),
-          Text(this.subtitle ?? Container()),
+          Text(this.subtitle ?? "", style: theme.textTheme.subtitle2),
           Padding(
             child: LinearProgressIndicator(
               value: progress,
