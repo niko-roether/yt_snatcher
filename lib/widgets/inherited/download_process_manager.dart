@@ -14,14 +14,22 @@ class DownloadProcess {
   Future<Download> start() => downloader.download();
 }
 
-class DownloadProcessManager extends InheritedWidget {
+class DownloadService extends InheritedWidget {
   static final _ytdl = YoutubeDL();
-  final List<DownloadProcess> _currentDownloads = [];
+  final void Function(DownloadProcess process) add;
+  final void Function(DownloadProcess process) remove;
+  final List<DownloadProcess> currentDownloads;
 
-  DownloadProcessManager({Key key, @required Widget child})
-      : super(key: key, child: child);
-
-  List<DownloadProcess> get currentDownloads => _currentDownloads;
+  DownloadService({
+    Key key,
+    @required Widget child,
+    @required this.add,
+    @required this.remove,
+    this.currentDownloads = const [],
+  })  : assert(currentDownloads != null),
+        assert(add != null),
+        assert(remove != null),
+        super(key: key, child: child);
 
   Future<Download> _download<D extends Downloader>(
     DownloaderSet dlset, [
@@ -29,9 +37,9 @@ class DownloadProcessManager extends InheritedWidget {
   ]) async {
     var downloader = await selector?.call(dlset) ?? dlset.best();
     var process = DownloadProcess(dlset.video, downloader);
-    _currentDownloads.add(process);
+    add(process);
     var dl = await downloader.download();
-    _currentDownloads.remove(process);
+    remove(process);
     return dl;
   }
 
@@ -48,11 +56,43 @@ class DownloadProcessManager extends InheritedWidget {
       _download<MusicDownloader>(await _ytdl.prepare(id).asMusic(), selector);
 
   @override
-  bool updateShouldNotify(DownloadProcessManager old) {
-    return old._currentDownloads != _currentDownloads;
+  bool updateShouldNotify(DownloadService old) {
+    return old.currentDownloads != currentDownloads;
   }
 
-  static DownloadProcessManager of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<DownloadProcessManager>();
+  static DownloadService of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<DownloadService>();
+  }
+}
+
+class DownloadProcessManager extends StatefulWidget {
+  final Widget child;
+  final Key serviceKey;
+
+  DownloadProcessManager({Key key, this.serviceKey, @required this.child})
+      : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return DownloadProcessManagerState();
+  }
+}
+
+class DownloadProcessManagerState extends State<DownloadProcessManager> {
+  List<DownloadProcess> _processes = [];
+
+  void _add(DownloadProcess process) => setState(() => _processes.add(process));
+  void _remove(DownloadProcess process) =>
+      setState(() => _processes.remove(process));
+
+  @override
+  Widget build(BuildContext context) {
+    return DownloadService(
+      key: widget.serviceKey,
+      child: widget.child,
+      add: (p) => _add(p),
+      remove: (p) => _remove(p),
+      currentDownloads: _processes,
+    );
   }
 }
