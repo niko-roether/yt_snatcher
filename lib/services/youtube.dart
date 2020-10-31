@@ -213,8 +213,8 @@ class Youtube {
 
   Future<Video> getVideo(String id) async {
     return Video(
-      await retry(() => _yt.videos.get(id), 10),
-      await retry(() => _yt.videos.streamsClient.getManifest(id), 10),
+      await _yt.videos.get(id),
+      await _yt.videos.streamsClient.getManifest(id),
       _yt,
     );
   }
