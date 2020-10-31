@@ -9,7 +9,12 @@ class DownloadsDisplay extends StatelessWidget {
     return Consumer<DownloadProcessManager>(
       builder: (context, inherited, child) {
         var processes = inherited.currentDownloads;
-        if (processes.isEmpty) return Container();
+        if (processes.isEmpty)
+          return Center(
+              child: Text(
+            "No downloads are currently active.",
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ));
         return ListView.builder(itemBuilder: (context, i) {
           var process = processes[i];
           return DownloaderView(
