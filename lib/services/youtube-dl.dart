@@ -21,6 +21,8 @@ abstract class Downloader {
 
   Downloader(this._meta, this._downloader);
 
+  int get byteCount => _byteCount;
+
   Stream<DownloadProgress> get progressStream =>
       _progressStreamController.stream;
 
@@ -36,6 +38,10 @@ abstract class Downloader {
   void _completed() {
     _progressStreamController.close();
   }
+
+  int get _size;
+
+  double get progress => _byteCount == null ? null : _byteCount / _size;
 }
 
 class VideoDownloader extends Downloader {
@@ -63,12 +69,15 @@ class VideoDownloader extends Downloader {
           return;
         }
         _byteCount += bytes;
-        _progressEvent(_byteCount / (_video.size + _audio.size), stage);
+        _progressEvent(progress, stage);
       },
     );
     _completed();
     return dl;
   }
+
+  @override
+  int get _size => _video.size + _audio.size;
 }
 
 class MusicDownloader extends Downloader {
@@ -78,14 +87,21 @@ class MusicDownloader extends Downloader {
 
   @override
   Future<dlm.Download> download() async {
-    var dl =
-        await _downloader.downloadMusic(_meta.id, _meta, _media, (int bytes) {
-      _byteCount += bytes;
-      _progressEvent(_byteCount / (_media.size), "Loading");
-    });
+    var dl = await _downloader.downloadMusic(
+      _meta.id,
+      _meta,
+      _media,
+      (int bytes) {
+        _byteCount += bytes;
+        _progressEvent(_byteCount / (_media.size), "Loading");
+      },
+    );
     _completed();
     return dl;
   }
+
+  @override
+  int get _size => _media.size;
 }
 
 abstract class DownloaderSet<D extends Downloader> {
