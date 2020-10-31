@@ -6,7 +6,7 @@ import 'package:yt_snatcher/widgets/inherited/download_process_manager.dart';
 class DownloadsDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<DownloadProcessManager>(
+    return Consumer<DownloadService>(
       builder: (context, inherited, child) {
         var processes = inherited.currentDownloads;
         if (processes.isEmpty)
@@ -15,13 +15,16 @@ class DownloadsDisplay extends StatelessWidget {
             "No downloads are currently active.",
             style: TextStyle(fontStyle: FontStyle.italic),
           ));
-        return ListView.builder(itemBuilder: (context, i) {
-          var process = processes[i];
-          return DownloaderView(
-            downloader: process.downloader,
-            meta: process.meta,
-          );
-        });
+        return ListView.builder(
+          itemBuilder: (context, i) {
+            var process = processes[i];
+            return DownloaderView(
+              downloader: process.downloader,
+              meta: process.meta,
+            );
+          },
+          itemCount: processes.length,
+        );
       },
     );
   }
