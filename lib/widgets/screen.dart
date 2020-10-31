@@ -28,7 +28,7 @@ class Screen extends StatelessWidget {
           fallbackBuilder: (context) => Container(),
         ),
       ]),
-      body: SizedBox(child: content, width: MediaQuery.of(context).size.width),
+      body: content,
       bottomNavigationBar: navigationBar,
     );
   }
