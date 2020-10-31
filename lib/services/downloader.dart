@@ -72,11 +72,12 @@ class Downloader {
   static const _NUM_DOWNLOAD_THREADS = 5;
   fs.FileManager _fileManager;
   static final _muxer = mx.Muxer();
-  final _musicDownloadTaskPool = TaskPool<_AudioDownloadInstructions, Download>(
+  static final _musicDownloadTaskPool =
+      TaskPool<_AudioDownloadInstructions, Download>(
     _musicDownloadTask,
     _NUM_DOWNLOAD_THREADS,
   );
-  final _videoDownloadTaskPool =
+  static final _videoDownloadTaskPool =
       TaskPool<_VideoDownloadInstructions, _UnmuxedVideoDownload>(
     _videoDownloadTask,
     _NUM_DOWNLOAD_THREADS,
@@ -277,7 +278,7 @@ class Downloader {
       name: name,
       localPath: await _fileManager.getLocalPath(),
     );
-    return _musicDownloadTaskPool.doTask(ins, onProgress);
+    return _musicDownloadTaskPool.doTask(ins, (p) => onProgress(p));
   }
 
   Future<Download> downloadVideo(
