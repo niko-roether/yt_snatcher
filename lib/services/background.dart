@@ -137,7 +137,7 @@ class TaskPool<A, R> {
     _next(task);
   }
 
-  Future<R> doTask(A arg, [Function(dynamic) listener]) async {
+  Future<R> doTask(A arg, [void Function(dynamic) listener]) async {
     var task = _tasks.firstWhere(
       (t) => t.state == TaskState.DORMANT,
       orElse: () => null,
