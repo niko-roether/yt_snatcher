@@ -21,8 +21,13 @@ class NavBar extends StatelessWidget {
         BottomNavigationBarItem(
           icon: Icon(Icons.library_music),
           label: "Music",
-        )
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.file_download),
+          label: "Downloads",
+        ),
       ],
+      type: BottomNavigationBarType.fixed,
       currentIndex: currentIndex,
       onTap: onTap,
     );
