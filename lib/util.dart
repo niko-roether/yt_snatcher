@@ -63,3 +63,16 @@ Duration parseDuration(String durationString) {
 String capitalize(String str) {
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
+
+// The eleven character ID length might need to be adjusted in the future
+// Matches youtube video ids or urls, with or without either "http://"" or "https://"", and with or without "www.".
+final _ytIdOrUrlRegex = RegExp(
+    "(?:^(?:http(?:s)?://)?(?:www\\.)?youtube\\.com/watch\\?v=)?([A-Za-z0-9_-]{11})\$");
+
+bool validateYoutubeUrlOrId(String urlOrId) {
+  return _ytIdOrUrlRegex.hasMatch(urlOrId);
+}
+
+String extractYoutubeId(String urlOrId) {
+  return _ytIdOrUrlRegex.firstMatch(urlOrId).group(1);
+}
