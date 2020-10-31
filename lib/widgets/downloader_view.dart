@@ -23,9 +23,15 @@ class DownloaderView extends StatefulWidget {
 }
 
 class DownloaderViewState extends State<DownloaderView> {
-  double _progress = 0;
+  double _progress;
   String _stage = "Preparing";
   StreamSubscription _subscription;
+
+  @override
+  initState() {
+    _progress = widget.downloader.progress;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
