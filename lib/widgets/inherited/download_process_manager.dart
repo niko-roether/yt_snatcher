@@ -15,8 +15,11 @@ class DownloadProcess {
 }
 
 class DownloadProcessManager extends InheritedWidget {
-  static final ytdl = YoutubeDL();
+  static final _ytdl = YoutubeDL();
   final List<DownloadProcess> _currentDownloads = [];
+
+  DownloadProcessManager({Key key, @required Widget child})
+      : super(key: key, child: child);
 
   List<DownloadProcess> get currentDownloads => _currentDownloads;
 
@@ -36,18 +39,17 @@ class DownloadProcessManager extends InheritedWidget {
     String id, [
     FutureOr<VideoDownloader> Function(VideoDownloaderSet) selector,
   ]) async =>
-      _download<VideoDownloader>(await ytdl.prepare(id).asVideo(), selector);
+      _download<VideoDownloader>(await _ytdl.prepare(id).asVideo(), selector);
 
   Future<Download> downloadMusic(
     String id, [
     FutureOr<MusicDownloader> Function(MusicDownloaderSet) selector,
   ]) async =>
-      _download<MusicDownloader>(await ytdl.prepare(id).asMusic(), selector);
+      _download<MusicDownloader>(await _ytdl.prepare(id).asMusic(), selector);
 
   @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    // TODO: implement updateShouldNotify
-    throw UnimplementedError();
+  bool updateShouldNotify(DownloadProcessManager old) {
+    return old._currentDownloads != _currentDownloads;
   }
 
   static DownloadProcessManager of(BuildContext context) {
