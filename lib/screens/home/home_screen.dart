@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/screens/home/nav_bar.dart';
+import 'package:yt_snatcher/screens/home/pages/downloads.dart';
 import 'package:yt_snatcher/screens/home/pages/home.dart';
 import 'package:yt_snatcher/screens/home/pages/music.dart';
 import 'package:yt_snatcher/screens/home/pages/videos.dart';
@@ -16,11 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   int _pageIndex = 0;
-  static final _pages = [
-    Home(),
-    Videos(),
-    Music(),
-  ];
+  static final _pages = [Home(), Videos(), Music(), Downloads()];
 
   @override
   Widget build(BuildContext context) {
