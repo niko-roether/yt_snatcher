@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:isolate';
 
-class InvalidTaskReturnTypeError extends Error {
+class InvalidTaskReturnTypeException implements Exception {
   final Type type;
 
-  InvalidTaskReturnTypeError(this.type);
+  InvalidTaskReturnTypeException(this.type);
 
   @override
   String toString() => "Task returned value of invalid type $type";
@@ -18,7 +18,7 @@ class Task<A, R> {
   Completer<R> _completer;
   final void Function(SendPort) _process;
   final String name;
-  final ReceivePort _mainRecievePort = ReceivePort();
+  ReceivePort _mainRecievePort;
 
   TaskState get state => _state;
   Future<void> get completed => _completer?.future;
@@ -44,6 +44,7 @@ class Task<A, R> {
     bool ignoreInvalidType = false,
     void Function(dynamic) listener,
   ]) {
+    _mainRecievePort = ReceivePort();
     _completer = Completer<R>();
     bool recievedSendPort = false;
     _mainRecievePort.listen((data) {
@@ -56,7 +57,7 @@ class Task<A, R> {
         listener?.call(data["value"]);
       } else {
         if (!(data is R) && !ignoreInvalidType)
-          throw InvalidTaskReturnTypeError(data.runtimeType);
+          throw InvalidTaskReturnTypeException(data.runtimeType);
         _log("Task returned value $data");
         _completer.complete(data);
       }
@@ -69,6 +70,7 @@ class Task<A, R> {
     bool ignoreInvalidType = false,
     Function(dynamic) listener,
   ]) async {
+    stop();
     _state = TaskState.RUNNING;
     var retFuture = _initTask(arg, ignoreInvalidType ?? false, listener);
     _isolate = await Isolate.spawn(
@@ -82,7 +84,13 @@ class Task<A, R> {
     return ret;
   }
 
-  void stop() => _isolate?.kill();
+  void stop() {
+    _isolate?.kill();
+    _state = TaskState.DORMANT;
+  }
+
+  @override
+  String toString() => name;
 }
 
 class _QueuedTask<A, R> {
@@ -102,43 +110,47 @@ class _QueuedTask<A, R> {
 
 class TaskPool<A, R> {
   final int size;
-  final void Function(SendPort) _process;
   final List<Task<A, R>> _tasks;
   final String name;
-  List<_QueuedTask<A, R>> _queue;
+  List<_QueuedTask<A, R>> _queue = [];
 
-  TaskPool(this._process, this.size, [this.name = "Task Pool"])
-      : _tasks = List.generate(
+  TaskPool(
+    void Function(SendPort) process,
+    this.size, [
+    this.name = "Task Pool",
+  ]) : _tasks = List.generate(
           size,
-          (i) => Task(_process, "$name Worker #$i"),
-        ) {
-    for (Task task in _tasks) {}
-  }
+          (i) => Task(process, "$name Worker #$i"),
+        );
 
   void _log(String message) => print("[$name] $message");
 
-  void _next(int taskIndex) async {
-    var task = _tasks[taskIndex];
+  void _next(Task task) async {
     if (task.state != TaskState.DORMANT) {
       await task.completed;
     }
     if (_queue.isEmpty) return;
     var queued = _queue.removeAt(0);
+    _log("Performing queued task with argument ${queued.arg} on ${task.name}");
     queued.latch(task);
     await task.completed;
-    _next(taskIndex);
+    _next(task);
   }
 
-  Future<R> doTask(A arg, [Function(dynamic) listener]) {
+  Future<R> doTask(A arg, [Function(dynamic) listener]) async {
     var task = _tasks.firstWhere(
       (t) => t.state == TaskState.DORMANT,
       orElse: () => null,
     );
     if (task == null) {
+      _log("Queueing with argument $arg");
       var queued = _QueuedTask<A, R>(arg, listener);
       _queue.add(queued);
       return queued.wait();
     }
-    return task.execute(arg, false, listener);
+    _log("Performing with argument $arg on ${task.name}");
+    var res = await task.execute(arg, false, listener);
+    _next(task);
+    return res;
   }
 }
