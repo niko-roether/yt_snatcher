@@ -1,15 +1,18 @@
 import "package:flutter/material.dart";
 import 'package:yt_snatcher/router.dart';
+import 'package:yt_snatcher/widgets/inherited/download_process_manager.dart';
 
 void main() => runApp(YtSnatcher());
 
 class YtSnatcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "Youtube Snatcher",
-      initialRoute: "/",
-      routes: routes,
+    return DownloadProcessManager(
+      child: MaterialApp(
+        title: "Youtube Snatcher",
+        initialRoute: "/",
+        routes: routes,
+      ),
     );
   }
 }
