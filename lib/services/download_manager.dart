@@ -133,7 +133,7 @@ abstract class DownloadSet {
         d.meta == null ||
         d.meta.videoMeta == null ||
         (d.meta.type == DownloadType.VIDEO &&
-            !d.mediaFile.path.endsWith(".mp4")));
+            !d.mediaFile.path.endsWith(".mkv")));
   }
 
   Future<List<Download>> getDownloads() async {
