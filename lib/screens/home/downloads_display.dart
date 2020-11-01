@@ -2,15 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yt_snatcher/screens/watch/play_screen.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/download_view.dart';
 import 'package:yt_snatcher/widgets/provider/download_provider.dart';
 
 class DownloadsDisplay extends StatefulWidget {
   final FutureOr<DownloadSet> Function(DownloadManager dlm) selector;
-  final void Function(Download download) onTap;
-
-  DownloadsDisplay({@required this.selector, this.onTap});
+  DownloadsDisplay({@required this.selector});
 
   @override
   State<StatefulWidget> createState() {
@@ -50,7 +49,11 @@ class DownloadsDisplayState extends State<DownloadsDisplay> {
           var download = _downloads[i];
           return DownloadView(
             download: download,
-            onTap: () => widget.onTap?.call(download),
+            onTap: () => Navigator.pushNamed(
+              context,
+              PlayScreen.ROUTENAME,
+              arguments: download,
+            ),
           );
         },
         itemCount: _downloads.length,
