@@ -13,8 +13,8 @@ class DownloadProgress {
 }
 
 abstract class Downloader {
-  dl.Downloader _downloader;
-  yt.VideoMeta _meta;
+  final dl.Downloader _downloader;
+  final yt.VideoMeta _meta;
   int _byteCount = 0;
   final StreamController<DownloadProgress> _progressStreamController =
       StreamController.broadcast();
