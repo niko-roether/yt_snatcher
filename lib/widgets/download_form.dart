@@ -26,9 +26,18 @@ class DownloadFormState extends State<DownloadForm> {
   final _formKey = GlobalKey<FormState>(debugLabel: "Download Form");
   var _downloadInfo = _DownloadInfo();
 
-  void _onError(ScaffoldState scaffold, _DownloadInfo info) {
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text("Failed to download ${info.id}"),
+  void _onError(Object e, ScaffoldState scaffold, _DownloadInfo info) {
+    String message;
+    switch (e.runtimeType) {
+      case DuplicateDownloadError:
+        message = "${info.id} has already been downloaded!";
+        break;
+      default:
+        message = "Failed to download ${info.id}";
+    }
+
+    scaffold.showSnackBar(SnackBar(
+      content: Text(message),
       backgroundColor: Theme.of(context).colorScheme.error,
     ));
   }
@@ -38,10 +47,14 @@ class DownloadFormState extends State<DownloadForm> {
     var scaffold = Scaffold.of(context);
     switch (_downloadInfo.type) {
       case DownloadType.VIDEO:
-        dpm.downloadVideo(info.id).catchError((e) => _onError(scaffold, info));
+        dpm
+            .downloadVideo(info.id)
+            .catchError((e) => _onError(e, scaffold, info));
         break;
       case DownloadType.MUSIC:
-        dpm.downloadMusic(info.id).catchError((e) => _onError(scaffold, info));
+        dpm
+            .downloadMusic(info.id)
+            .catchError((e) => _onError(e, scaffold, info));
         break;
     }
   }
