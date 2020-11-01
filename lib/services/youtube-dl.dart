@@ -65,13 +65,11 @@ class VideoDownloader extends Downloader {
       _video,
       _audio,
       (int bytes, String stage) {
+        _stage = stage;
         if (bytes == null) {
-          if (bytes == null && _byteCount != null)
-            _progressEvent(_byteCount = null, stage);
-          return;
+          _progressEvent(_byteCount = null, stage);
         }
         _byteCount += bytes;
-        _stage = stage;
         _progressEvent(progress, stage);
       },
     );

@@ -140,9 +140,6 @@ class Downloader {
       throw error;
     }
 
-    meta.complete = true;
-    await meta.save();
-
     if (mediaFiles.length == 1)
       return Download(meta, mediaFiles[0]);
     else if (mediaFiles.length == 2)
@@ -283,7 +280,13 @@ class Downloader {
       name: name,
       localPath: await _fileManager.getLocalPath(),
     );
-    return _musicDownloadTaskPool.doTask(ins, (p) => onProgress(p));
+    var download =
+        await _musicDownloadTaskPool.doTask(ins, (p) => onProgress(p));
+    if (download != null && await download.mediaFile.exists()) {
+      download.meta.complete = true;
+      download.meta.save();
+    }
+    return download;
   }
 
   Future<Download> downloadVideo(
@@ -315,6 +318,12 @@ class Downloader {
       (p) => onProgress(p, "Processing"),
       _fileManager,
     );
-    return Download(unmuxed.meta, muxedFile);
+
+    var download = Download(unmuxed.meta, muxedFile);
+    if (download != null && await download.mediaFile.exists()) {
+      download.meta.complete = true;
+      await download.meta.save();
+    }
+    return download;
   }
 }

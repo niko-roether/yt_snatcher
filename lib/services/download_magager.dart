@@ -48,6 +48,7 @@ class DownloadMeta {
   }
 
   Future<DownloadMeta> save() async {
+    await metaFile.create();
     await metaFile.writeAsString(toJson());
     return this;
   }
@@ -139,8 +140,8 @@ abstract class DownloadSet {
     }).toList()))
         .where((d) {
       var valid = _validateDownload(d);
-      if (valid) d.delete();
-      return !valid;
+      if (!valid) d.delete();
+      return valid;
     }).toList();
   }
 

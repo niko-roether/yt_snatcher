@@ -35,45 +35,72 @@ class DownloadProgressIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    final content = Padding(
-      child: Column(
-        children: [
-          Text(
-            this.title,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.subtitle1,
-          ),
-          Text(this.subtitle ?? "", style: theme.textTheme.subtitle2),
-          Padding(
-            child: LinearProgressIndicator(
-              value: progress,
-              semanticsLabel: "Downloading $semanticName",
-              semanticsValue: _percent,
-              backgroundColor: bgColor,
-              valueColor: barColor,
-            ),
-            padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
-          ),
-          Align(
-            child: Text(
-              "${capitalize(stage)}... $_percent",
-            ),
-            alignment: Alignment.center,
-          )
-        ],
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return ListTile(
+      leading: Conditional.single(
+        context: context,
+        conditionBuilder: (context) => thumbnailUrl != null,
+        widgetBuilder: (context) => Image.network(thumbnailUrl),
+        fallbackBuilder: (context) => Container(),
       ),
-      padding: EdgeInsets.symmetric(horizontal: 8),
-    );
-    return Conditional.single(
-      context: context,
-      conditionBuilder: (c) => thumbnailUrl != null,
-      widgetBuilder: (c) => Row(children: [
-        Image.network(thumbnailUrl, width: thumbnailWidth),
-        Expanded(child: content),
+      title: Text(title, overflow: TextOverflow.ellipsis),
+      subtitle: Column(children: [
+        Padding(
+          child: LinearProgressIndicator(
+            value: progress,
+            semanticsLabel: "Downloading $semanticName",
+            semanticsValue: _percent,
+            backgroundColor: bgColor,
+            valueColor: barColor,
+          ),
+          padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+        ),
+        Align(
+          child: Text(
+            "${capitalize(stage)}... $_percent",
+          ),
+          alignment: Alignment.center,
+        )
       ]),
-      fallbackBuilder: (c) => content,
     );
+    // final content = Padding(
+    //   child: Column(
+    //     children: [
+    //       Text(
+    //         this.title,
+    //         overflow: TextOverflow.ellipsis,
+    //         style: theme.textTheme.subtitle1,
+    //       ),
+    //       Text(this.subtitle ?? "", style: theme.textTheme.subtitle2),
+    //       Padding(
+    //         child: LinearProgressIndicator(
+    //           value: progress,
+    //           semanticsLabel: "Downloading $semanticName",
+    //           semanticsValue: _percent,
+    //           backgroundColor: bgColor,
+    //           valueColor: barColor,
+    //         ),
+    //         padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
+    //       ),
+    //       Align(
+    //         child: Text(
+    //           "${capitalize(stage)}... $_percent",
+    //         ),
+    //         alignment: Alignment.center,
+    //       )
+    //     ],
+    //     mainAxisSize: MainAxisSize.min,
+    //     crossAxisAlignment: CrossAxisAlignment.start,
+    //   ),
+    //   padding: EdgeInsets.symmetric(horizontal: 8),
+    // );
+    // return Conditional.single(
+    //   context: context,
+    //   conditionBuilder: (c) => thumbnailUrl != null,
+    //   widgetBuilder: (c) => Row(children: [
+    //     Image.network(thumbnailUrl, width: thumbnailWidth),
+    //     Expanded(child: content),
+    //   ]),
+    //   fallbackBuilder: (c) => content,
+    // );
   }
 }

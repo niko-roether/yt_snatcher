@@ -66,7 +66,12 @@ class Muxer {
     String out, [
     void Function(int) onProgress,
   ]) async {
-    onProgress(null);
-    return _execute([file1, file2], out, FFMPEG_MUXING_ARGS);
+    var timer = Timer.periodic(
+      Duration(seconds: 1),
+      (timer) => onProgress(null),
+    );
+    var res = _execute([file1, file2], out, FFMPEG_MUXING_ARGS);
+    timer.cancel();
+    return res;
   }
 }

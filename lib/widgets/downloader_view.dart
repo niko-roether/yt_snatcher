@@ -51,7 +51,7 @@ class DownloaderViewState extends State<DownloaderView> {
         subtitle: widget.meta?.channelName ?? "",
         progress: widget.pending ? null : _progress,
         stage: widget.pending ? "Pending" : _stage,
-        thumbnailUrl: widget.meta?.thumbnails?.mediumRes ?? null,
+        thumbnailUrl: widget.meta?.thumbnails?.lowRes ?? null,
         semanticName: widget.meta?.title ?? "content",
         bgColor: widget.pending ? Colors.grey : null,
       ),
