@@ -8,8 +8,9 @@ import 'package:yt_snatcher/services/youtube.dart';
 class DownloadProcess {
   final Downloader downloader;
   final VideoMeta meta;
+  final DownloadType type;
 
-  DownloadProcess(this.meta, this.downloader);
+  DownloadProcess(this.meta, this.downloader, this.type);
 
   Future<Download> start() => downloader.download();
 }
@@ -32,11 +33,12 @@ class DownloadService extends InheritedWidget {
         super(key: key, child: child);
 
   Future<Download> _download<D extends Downloader>(
-    DownloaderSet dlset, [
+    DownloaderSet dlset,
+    DownloadType type, [
     FutureOr<D> Function(DownloaderSet<D>) selector,
   ]) async {
     var downloader = await selector?.call(dlset) ?? dlset.best();
-    var process = DownloadProcess(dlset.video, downloader);
+    var process = DownloadProcess(dlset.video, downloader, type);
     add(process);
     var dl = await downloader.download();
     remove(process);
@@ -47,13 +49,27 @@ class DownloadService extends InheritedWidget {
     String id, [
     FutureOr<VideoDownloader> Function(VideoDownloaderSet) selector,
   ]) async =>
-      _download<VideoDownloader>(await _ytdl.prepare(id).asVideo(), selector);
+      _download<VideoDownloader>(
+        await _ytdl.prepare(id).asVideo(),
+        DownloadType.VIDEO,
+        selector,
+      );
 
   Future<Download> downloadMusic(
     String id, [
     FutureOr<MusicDownloader> Function(MusicDownloaderSet) selector,
   ]) async =>
-      _download<MusicDownloader>(await _ytdl.prepare(id).asMusic(), selector);
+      _download<MusicDownloader>(
+        await _ytdl.prepare(id).asMusic(),
+        DownloadType.MUSIC,
+        selector,
+      );
+
+  DownloadProcess getDownload(String id, DownloadType type) {
+    return currentDownloads.firstWhere(
+      (dl) => dl.meta.id == id && dl.type == type,
+    );
+  }
 
   @override
   bool updateShouldNotify(DownloadService old) {
