@@ -126,9 +126,19 @@ class Downloader {
     Future<DownloadMeta> metaFuture,
     Future<List<File>> mediaFilesFuture,
   ) async {
-    var data = await Future.wait([metaFuture, mediaFilesFuture]);
+    Object error;
+    var data = await Future.wait([
+      metaFuture.catchError((e) => error = e),
+      mediaFilesFuture.catchError((e) => error = e),
+    ]);
     var meta = data[0] as DownloadMeta;
     var mediaFiles = data[1] as List<File>;
+
+    if (error != null) {
+      await meta?.delete();
+      await Future.wait(mediaFiles?.map((f) => f?.delete())?.toList());
+      throw error;
+    }
 
     meta.complete = true;
     await meta.save();
@@ -189,21 +199,6 @@ class Downloader {
     var files = await Future.wait([videoFileFuture, audioFileFuture]);
     if (files.any((f) => f == null)) throw "Failed to get media files";
     return files;
-
-    // var muxedFile = await fileManager.createLocalFile(
-    //   fs.FileManager.VIDEO_PATH,
-    //   filename,
-    // );
-
-    // await _muxer.mux(
-    //   files[0].path,
-    //   files[1].path,
-    //   muxedFile.path,
-    //   (p) => onProgress(p, "Processing"),
-    // );
-    // files.forEach((f) => f.delete());
-
-    // return muxedFile;
   }
 
   static Future<File> _muxVideoFiles(
