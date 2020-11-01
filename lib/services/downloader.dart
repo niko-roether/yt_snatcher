@@ -148,7 +148,7 @@ class Downloader {
   }
 
   static String _metaFileName(String name) => "$name.json";
-  static String _muxedFileName(String name) => "$name.mp4";
+  static String _muxedFileName(String name) => "$name.mkv";
 
   static Future<List<File>> _downloadMusicMedia(
     String filename,
@@ -323,7 +323,8 @@ class Downloader {
     if (download != null && await download.mediaFile.exists()) {
       download.meta.complete = true;
       await download.meta.save();
+      return download;
     }
-    return download;
+    throw Exception("Well something went wrong...");
   }
 }
