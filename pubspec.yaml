@@ -26,3 +26,19 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Nunito Sans
+      fonts:
+        - asset: fonts/NunitoSans-Regular.ttf
+        - asset: fonts/NunitoSans-Italic.ttf
+          style: italic
+    - family: Open Sans
+      fonts:
+        - asset: fonts/OpenSans-Regular.ttf
+        - asset: fonts/OpenSans-Italic.ttf
+          style: italic
+        - asset: fonts/OpenSans-Bold.ttf
+          weight: 700
+        - asset: fonts/OpenSans-BoldItalic-ttf
+          style: italic
+          weight: 700
