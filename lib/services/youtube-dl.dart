@@ -16,12 +16,14 @@ abstract class Downloader {
   final dl.Downloader _downloader;
   final yt.VideoMeta _meta;
   int _byteCount = 0;
+  String _stage = "Preparing";
   final StreamController<DownloadProgress> _progressStreamController =
       StreamController.broadcast();
 
   Downloader(this._meta, this._downloader);
 
   int get byteCount => _byteCount;
+  String get stage => _stage;
 
   Stream<DownloadProgress> get progressStream =>
       _progressStreamController.stream;
@@ -69,6 +71,7 @@ class VideoDownloader extends Downloader {
           return;
         }
         _byteCount += bytes;
+        _stage = stage;
         _progressEvent(progress, stage);
       },
     );
@@ -93,6 +96,7 @@ class MusicDownloader extends Downloader {
       _media,
       (int bytes) {
         _byteCount += bytes;
+        _stage = stage;
         _progressEvent(_byteCount / (_media.size), "Loading");
       },
     );
