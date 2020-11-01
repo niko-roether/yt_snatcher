@@ -17,6 +17,7 @@ class DownloadPlayer extends StatelessWidget {
         aspectRatio: 16 / 9, // TODO support different aspect ratios
         fit: BoxFit.contain,
         controlsConfiguration: BetterPlayerControlsConfiguration(
+          overflowMenuIconsColor: Theme.of(context).iconTheme.color,
           overflowMenuCustomItems: [
             BetterPlayerOverflowMenuItem(
               Icons.info,
