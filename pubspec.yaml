@@ -3,7 +3,7 @@ description: A mobile app to locally save youtube content.
 
 publish_to: 'none'
 
-version: 0.0.2+1
+version: 0.0.3+1
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
