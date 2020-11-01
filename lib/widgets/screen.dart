@@ -7,6 +7,7 @@ class Screen extends StatelessWidget {
   final bool showSettings;
   final Widget navigationBar;
   final Key key;
+  final Widget fab;
 
   Screen({
     @required this.title,
@@ -14,6 +15,7 @@ class Screen extends StatelessWidget {
     this.navigationBar,
     this.showSettings = true,
     this.key,
+    this.fab,
   });
 
   @override
@@ -33,6 +35,7 @@ class Screen extends StatelessWidget {
       ]),
       body: content,
       bottomNavigationBar: navigationBar,
+      floatingActionButton: fab,
     );
   }
 }
