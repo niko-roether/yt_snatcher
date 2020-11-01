@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/youtube.dart' as yt;
-import 'package:yt_snatcher/services/download_magager.dart' as dlm;
+import 'package:yt_snatcher/services/download_manager.dart' as dlm;
 import 'downloader.dart' as dl;
 
 class DownloadProgress {
@@ -68,6 +68,7 @@ class VideoDownloader extends Downloader {
         _stage = stage;
         if (bytes == null) {
           _progressEvent(_byteCount = null, stage);
+          return;
         }
         _byteCount += bytes;
         _progressEvent(progress, stage);
