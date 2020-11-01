@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/util.dart';
-import 'package:yt_snatcher/widgets/inherited/download_process_manager.dart';
+import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
 // TODO add option to customize video quality
 
@@ -26,7 +26,8 @@ class DownloadFormState extends State<DownloadForm> {
   final _formKey = GlobalKey<FormState>(debugLabel: "Download Form");
   var _downloadInfo = _DownloadInfo();
 
-  void _onError(Object e, ScaffoldState scaffold, _DownloadInfo info) {
+  void _onError(
+      Object e, ScaffoldState scaffold, ThemeData theme, _DownloadInfo info) {
     String message;
     switch (e.runtimeType) {
       case DuplicateDownloadError:
@@ -38,23 +39,25 @@ class DownloadFormState extends State<DownloadForm> {
 
     scaffold.showSnackBar(SnackBar(
       content: Text(message),
-      backgroundColor: Theme.of(context).colorScheme.error,
+      backgroundColor: theme.colorScheme.error,
     ));
   }
 
   void _download(BuildContext context, _DownloadInfo info) {
-    var dpm = DownloadService.of(context);
-    var scaffold = Scaffold.of(context);
+    final dpm = DownloadService.of(context);
+    final scaffold = Scaffold.of(context);
+    final theme = Theme.of(context);
+    print(scaffold);
     switch (_downloadInfo.type) {
       case DownloadType.VIDEO:
         dpm
             .downloadVideo(info.id)
-            .catchError((e) => _onError(e, scaffold, info));
+            .catchError((e) => _onError(e, scaffold, theme, info));
         break;
       case DownloadType.MUSIC:
         dpm
             .downloadMusic(info.id)
-            .catchError((e) => _onError(e, scaffold, info));
+            .catchError((e) => _onError(e, scaffold, theme, info));
         break;
     }
   }
