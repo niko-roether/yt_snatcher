@@ -128,11 +128,13 @@ abstract class DownloadSet {
     return Download(meta, media);
   }
 
-  bool _validateDownload(Download d) =>
-      d.mediaFile == null ||
-      d.meta == null ||
-      d.meta.videoMeta == null ||
-      (d.meta.type == DownloadType.VIDEO && !d.mediaFile.path.endsWith(".mp4"));
+  bool _validateDownload(Download d) {
+    return !(d.mediaFile == null ||
+        d.meta == null ||
+        d.meta.videoMeta == null ||
+        (d.meta.type == DownloadType.VIDEO &&
+            !d.mediaFile.path.endsWith(".mp4")));
+  }
 
   Future<List<Download>> getDownloads() async {
     return (await Future.wait(_meta.map((meta) async {
@@ -177,9 +179,7 @@ class DownloadManager {
     String path, {
     bool completeOnly = true,
   }) async {
-    var metaFiles = await _fileManager.getExistingLocalFiles(
-      fs.FileManager.VIDEO_META_PATH,
-    );
+    var metaFiles = await _fileManager.getExistingLocalFiles(path);
     return _extractMetaData(metaFiles).then((list) =>
         list.where((data) => !completeOnly || data.complete).toList());
   }
