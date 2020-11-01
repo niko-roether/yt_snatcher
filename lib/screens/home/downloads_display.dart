@@ -55,6 +55,7 @@ class DownloadsDisplayState extends State<DownloadsDisplay> {
               PlayScreen.ROUTENAME,
               arguments: download,
             ),
+            onChange: () => _refresh(),
           );
         },
         itemCount: _downloads.length,
