@@ -5,6 +5,18 @@ import 'package:yt_snatcher/services/download_magager.dart';
 import 'package:yt_snatcher/services/youtube-dl.dart';
 import 'package:yt_snatcher/services/youtube.dart';
 
+class DuplicateDownloadError extends Error {
+  final String id;
+  final DownloadType type;
+
+  DuplicateDownloadError(this.id, this.type);
+
+  @override
+  String toString() {
+    return "$id has already been downloaded with type $type";
+  }
+}
+
 class DownloadProcess {
   final Downloader downloader;
   final VideoMeta meta;
@@ -17,6 +29,7 @@ class DownloadProcess {
 
 class DownloadService extends InheritedWidget {
   static final _ytdl = YoutubeDL();
+  static final _dlm = DownloadManager();
   final void Function(DownloadProcess process) add;
   final void Function(DownloadProcess process) remove;
   final List<DownloadProcess> currentDownloads;
@@ -32,15 +45,27 @@ class DownloadService extends InheritedWidget {
         assert(remove != null),
         super(key: key, child: child);
 
+  Future<bool> _checkDuplicate(String id, DownloadType type) async {
+    if (currentDownloads.any(
+      (d) => d.meta.id == id && d.type == type,
+    )) return false;
+    return _dlm.checkDuplicate(id, type);
+  }
+
   Future<Download> _download<D extends Downloader>(
     DownloaderSet dlset,
     DownloadType type, [
     FutureOr<D> Function(DownloaderSet<D>) selector,
   ]) async {
+    if (await _checkDuplicate(dlset.video.id, type))
+      throw DuplicateDownloadError(dlset.video.id, type);
     var downloader = await selector?.call(dlset) ?? dlset.best();
     var process = DownloadProcess(dlset.video, downloader, type);
     add(process);
-    var dl = await downloader.download();
+    var dl = await downloader.download().catchError((e) {
+      remove(process);
+      throw e;
+    });
     remove(process);
     return dl;
   }
@@ -72,9 +97,8 @@ class DownloadService extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(DownloadService old) {
-    return old.currentDownloads != currentDownloads;
-  }
+  bool updateShouldNotify(DownloadService old) =>
+      true; // TODO provide better condition as a rebuilt has major performance impact
 
   static DownloadService of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<DownloadService>();
