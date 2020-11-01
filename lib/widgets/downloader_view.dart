@@ -30,6 +30,7 @@ class DownloaderViewState extends State<DownloaderView> {
   @override
   initState() {
     _progress = widget.downloader.progress;
+    _stage = widget.downloader.stage;
     super.initState();
   }
 
