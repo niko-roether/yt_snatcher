@@ -172,24 +172,50 @@ class DownloadManager {
         .toList());
   }
 
-  Future<List<DownloadMeta>> _getMetaData(String path) async {
+  Future<List<DownloadMeta>> _getMetaData(
+    String path, {
+    bool completeOnly = true,
+  }) async {
     var metaFiles = await _fileManager.getExistingLocalFiles(
       fs.FileManager.VIDEO_META_PATH,
     );
-    return _extractMetaData(metaFiles);
+    return _extractMetaData(metaFiles).then((list) =>
+        list.where((data) => !completeOnly || data.complete).toList());
   }
 
-  Future<VideoDownloadSet> getVideos() async {
+  Future<VideoDownloadSet> getVideos({bool completeOnly = true}) async {
     return VideoDownloadSet(
-      await _getMetaData(fs.FileManager.VIDEO_META_PATH),
+      await _getMetaData(
+        fs.FileManager.VIDEO_META_PATH,
+        completeOnly: completeOnly,
+      ),
       _fileManager,
     );
   }
 
-  Future<MusicDownloadSet> getMusic() async {
+  Future<MusicDownloadSet> getMusic({bool completeOnly = true}) async {
     return MusicDownloadSet(
-      await _getMetaData(fs.FileManager.MUSIC_META_PATH),
+      await _getMetaData(
+        fs.FileManager.MUSIC_META_PATH,
+        completeOnly: completeOnly,
+      ),
       _fileManager,
     );
+  }
+
+  Future<bool> checkDuplicate(
+    String id,
+    DownloadType type, {
+    bool completeOnly = false,
+  }) async {
+    DownloadSet dlSet;
+    switch (type) {
+      case DownloadType.MUSIC:
+        dlSet = await getMusic(completeOnly: completeOnly);
+        break;
+      case DownloadType.VIDEO:
+        dlSet = await getVideos(completeOnly: completeOnly);
+    }
+    return (await dlSet.getDownloads()).any((dl) => dl.meta.id == id);
   }
 }
