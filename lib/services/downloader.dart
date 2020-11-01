@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
-import 'package:yt_snatcher/services/download_magager.dart';
+import 'package:yt_snatcher/services/download_manager.dart';
 
 import 'background.dart';
 
