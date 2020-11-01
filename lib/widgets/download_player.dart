@@ -13,6 +13,9 @@ class DownloadPlayer extends StatelessWidget {
     return BetterPlayer.file(
       download.mediaFile.path,
       betterPlayerConfiguration: BetterPlayerConfiguration(
+        autoPlay: true,
+        aspectRatio: 16 / 9, // TODO support different aspect ratios
+        fit: BoxFit.contain,
         controlsConfiguration: BetterPlayerControlsConfiguration(
           overflowMenuCustomItems: [
             BetterPlayerOverflowMenuItem(
@@ -21,7 +24,7 @@ class DownloadPlayer extends StatelessWidget {
               () => Navigator.pushNamed(
                 context,
                 VideoInfoScreen.ROUTENAME,
-                arguments: download.meta,
+                arguments: download.meta.videoMeta,
               ),
             )
           ],
