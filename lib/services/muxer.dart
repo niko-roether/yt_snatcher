@@ -22,7 +22,35 @@ class MuxerException extends Error {
 }
 
 class Muxer {
-  final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
+  // Taken straight from youtube-dl. Might adjust further if I find the time
+  static const FFMPEG_MUXING_ARGS = ["-c", "copy", "-map", "0:v:0", "1:a:0"];
+  static final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
+
+  static void _evaluateErrorCode(int errcode) {
+    switch (errcode) {
+      case 0:
+        return;
+      case 255:
+        throw MuxerUserCancelException();
+      default:
+        throw MuxerException(errcode);
+    }
+  }
+
+  static Future<File> _execute(
+    List<String> inputs,
+    String output,
+    List<String> args,
+  ) async {
+    final commandArray = <String>[
+      ...inputs.expand((i) => ["-i", i]),
+      output,
+      ...args,
+    ];
+    int errcode = await _ffmpeg.executeWithArguments(commandArray);
+    _evaluateErrorCode(errcode);
+    return File(output);
+  }
 
   Future<File> mux(
     String file1,
@@ -30,24 +58,7 @@ class Muxer {
     String out, [
     void Function(int) onProgress,
   ]) async {
-    var outFile = File(out);
-    outFile.create(recursive: true);
-    var progressTimer = Timer.periodic(Duration(seconds: 1), (i) async {
-      // var size = await outFile.length();
-      // onProgress?.call(size);
-      // TODO somehow get progress here????
-      onProgress(null);
-    });
-    int errcode =
-        await _ffmpeg.execute("-y -i $file1 -i $file2 $out -vcodec copy");
-    progressTimer.cancel();
-    switch (errcode) {
-      case 0:
-        return File(out);
-      case 255:
-        throw MuxerUserCancelException();
-      default:
-        throw MuxerException(errcode);
-    }
+    onProgress(null);
+    return _execute([file1, file2], out, FFMPEG_MUXING_ARGS);
   }
 }
