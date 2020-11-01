@@ -123,11 +123,16 @@ class Downloader {
   }
 
   static Future<Download> _createDownload(
-      Future<File> metaFileFuture, Future<List<File>> mediaFilesFuture) async {
-    var files = await Future.wait([metaFileFuture, mediaFilesFuture]);
-    var metaFile = files[0] as File;
-    var mediaFiles = files[1] as List<File>;
-    var meta = DownloadMeta.fromJson(await metaFile.readAsString(), metaFile);
+    Future<DownloadMeta> metaFuture,
+    Future<List<File>> mediaFilesFuture,
+  ) async {
+    var data = await Future.wait([metaFuture, mediaFilesFuture]);
+    var meta = data[0] as DownloadMeta;
+    var mediaFiles = data[1] as List<File>;
+
+    meta.complete = true;
+    await meta.save();
+
     if (mediaFiles.length == 1)
       return Download(meta, mediaFiles[0]);
     else if (mediaFiles.length == 2)
@@ -220,49 +225,54 @@ class Downloader {
     return muxedFile;
   }
 
-  static Future<File> _downloadMeta(
-    String path,
-    String id,
-    String mediaFilename,
-    yt.VideoMeta meta,
-    fs.FileManager fileManager,
-  ) {
-    var filename = _metaFileName(id);
+  static Future<DownloadMeta> _downloadMeta({
+    @required String path,
+    @required String name,
+    @required String mediaFilename,
+    @required yt.VideoMeta meta,
+    @required DownloadType type,
+    @required fs.FileManager fileManager,
+  }) async {
+    var filename = _metaFileName(name);
     var dlMeta = DownloadMeta(
-      meta,
-      id,
-      mediaFilename,
-      null,
-      DownloadType.MUSIC,
+      videoMeta: meta,
+      id: name,
+      filename: mediaFilename,
+      metaFile: await fileManager.createLocalFile(path, filename),
+      type: type,
+      complete: false,
     );
-    return fileManager.writeLocalFile(
-      path,
-      filename,
-      dlMeta.toJson(),
-    );
+    return dlMeta.save();
   }
 
-  static Future<File> _downloadMusicMeta(
-    String id,
+  static Future<DownloadMeta> _downloadMusicMeta(
+    String name,
     String mediaFilename,
     yt.VideoMeta meta,
     fs.FileManager fileManager,
   ) =>
       _downloadMeta(
-          fs.FileManager.MUSIC_META_PATH, id, mediaFilename, meta, fileManager);
+        path: fs.FileManager.MUSIC_META_PATH,
+        name: name,
+        mediaFilename: mediaFilename,
+        meta: meta,
+        type: DownloadType.MUSIC,
+        fileManager: fileManager,
+      );
 
-  static Future<File> _downloadVideoMeta(
-    String id,
+  static Future<DownloadMeta> _downloadVideoMeta(
+    String name,
     String mediaFilename,
     yt.VideoMeta meta,
     fs.FileManager fileManager,
   ) =>
       _downloadMeta(
-        fs.FileManager.VIDEO_META_PATH,
-        id,
-        mediaFilename,
-        meta,
-        fileManager,
+        path: fs.FileManager.VIDEO_META_PATH,
+        name: name,
+        mediaFilename: mediaFilename,
+        meta: meta,
+        type: DownloadType.VIDEO,
+        fileManager: fileManager,
       );
 
   Future<Download> downloadMusic(
