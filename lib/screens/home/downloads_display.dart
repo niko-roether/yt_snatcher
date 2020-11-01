@@ -44,6 +44,8 @@ class DownloadsDisplayState extends State<DownloadsDisplay> {
       return loading;
     }
     return RefreshIndicator(
+      backgroundColor: Theme.of(context).colorScheme.secondaryVariant,
+      color: Theme.of(context).primaryColor,
       child: ListView.builder(
         itemBuilder: (context, i) {
           var download = _downloads[i];
