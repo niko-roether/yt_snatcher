@@ -70,7 +70,7 @@ class Muxer {
       Duration(seconds: 1),
       (timer) => onProgress(null),
     );
-    var res = _execute([file1, file2], out, FFMPEG_MUXING_ARGS);
+    var res = await _execute([file1, file2], out, FFMPEG_MUXING_ARGS);
     timer.cancel();
     return res;
   }
