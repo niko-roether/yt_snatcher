@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yt_snatcher/screens/home/add_download_fab.dart';
 import 'package:yt_snatcher/screens/home/nav_bar.dart';
 import 'package:yt_snatcher/screens/home/pages/downloads.dart';
 import 'package:yt_snatcher/screens/home/pages/home.dart';
@@ -26,6 +27,8 @@ class HomeScreenState extends State<HomeScreen> {
       content: _pages[_pageIndex],
       navigationBar: NavBar(currentIndex: _pageIndex, onTap: _onTapNavItem),
       key: Key(HomeScreen.ROUTENAME),
+      // TODO there must be a better solution for this
+      fab: _pageIndex == 3 ? AddDownloadFab() : null,
     );
   }
 
