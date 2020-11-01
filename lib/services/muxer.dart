@@ -23,15 +23,7 @@ class MuxerException extends Error {
 
 class Muxer {
   // Taken straight from youtube-dl. Might adjust further if I find the time
-  static const FFMPEG_MUXING_ARGS = [
-    "-c",
-    "copy",
-    "-map",
-    "0:v:0",
-    "-map",
-    "1:a:0",
-    "-y"
-  ];
+  static const FFMPEG_MUXING_ARGS = ["-vcodec", "copy", "-y"];
   static final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
 
   static void _evaluateErrorCode(int errcode) {
@@ -52,8 +44,8 @@ class Muxer {
   ) async {
     final commandArray = <String>[
       ...inputs.expand((i) => ["-i", i]),
-      output,
       ...args,
+      output,
     ];
     int errcode = await _ffmpeg.executeWithArguments(commandArray);
     _evaluateErrorCode(errcode);
