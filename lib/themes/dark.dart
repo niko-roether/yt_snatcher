@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+final _headingStyle = TextStyle(fontFamily: "Nunito Sans");
+final _blockStyle = TextStyle(fontFamily: "Open Sans");
+
 final darkTheme = ThemeData.from(
   colorScheme: ColorScheme.dark(
     background: Color(0xff001321),
@@ -13,5 +16,19 @@ final darkTheme = ThemeData.from(
     secondaryVariant: Color(0xff0c7489),
     onSecondary: Colors.white,
   ),
-  textTheme: Typography.material2018().white,
+  textTheme: Typography.material2018().white.copyWith(
+        headline1: _headingStyle,
+        headline2: _headingStyle,
+        headline3: _headingStyle,
+        headline4: _headingStyle,
+        headline5: _headingStyle,
+        headline6: _headingStyle,
+        subtitle1: _headingStyle,
+        subtitle2: _headingStyle,
+        bodyText1: _blockStyle,
+        bodyText2: _blockStyle,
+        caption: _blockStyle,
+        button: _blockStyle,
+        overline: _blockStyle,
+      ),
 );
