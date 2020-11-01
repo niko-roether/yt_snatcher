@@ -19,7 +19,7 @@ class FileManager {
 
   FileManager([this._localPath]) {
     if (_localPath == null)
-      _localPath = getApplicationSupportDirectory().then((dir) => dir.path);
+      _localPath = getApplicationDocumentsDirectory().then((dir) => dir.path);
   }
 
   Future<File> _getLocalFile(String path) async {
@@ -75,7 +75,9 @@ class FileManager {
 
   Future<List<File>> getExistingLocalFiles(String dir) async {
     var localPath = await _localPath;
-    var entities = await Directory("$localPath$dir").list().toList();
+    var directory = Directory("$localPath$dir");
+    if (!(await directory.exists())) return [];
+    var entities = await directory.list().toList();
     return entities.map((e) => File.fromUri(e.uri)).toList();
   }
 }
