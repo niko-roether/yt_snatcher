@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/download_form.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
