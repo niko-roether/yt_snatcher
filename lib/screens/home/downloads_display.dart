@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/screens/watch/play_screen.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
