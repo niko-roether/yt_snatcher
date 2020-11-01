@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:yt_snatcher/services/download_magager.dart';
+import 'package:yt_snatcher/services/download_manager.dart';
 
 class DownloadProvider extends InheritedWidget {
   final service = DownloadManager();
