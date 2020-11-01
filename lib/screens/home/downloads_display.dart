@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/widgets/consumer.dart';
 import 'package:yt_snatcher/widgets/downloader_view.dart';
-import 'package:yt_snatcher/widgets/inherited/download_process_manager.dart';
+import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
 class DownloadsDisplay extends StatelessWidget {
   @override

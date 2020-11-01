@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:yt_snatcher/router.dart';
-import 'package:yt_snatcher/widgets/inherited/download_process_manager.dart';
+import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
 void main() => runApp(YtSnatcher());
 
