@@ -23,7 +23,14 @@ class MuxerException extends Error {
 
 class Muxer {
   // Taken straight from youtube-dl. Might adjust further if I find the time
-  static const FFMPEG_MUXING_ARGS = ["-c", "copy", "-map", "0:v:0", "1:a:0"];
+  static const FFMPEG_MUXING_ARGS = [
+    "-c",
+    "copy",
+    "-map",
+    "0:v:0",
+    "-map",
+    "1:a:0"
+  ];
   static final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
 
   static void _evaluateErrorCode(int errcode) {
