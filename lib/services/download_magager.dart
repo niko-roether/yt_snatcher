@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:yt_snatcher/services/files.dart' as fs;
 import 'package:yt_snatcher/services/youtube.dart' as yt;
 
@@ -12,22 +13,26 @@ class DownloadMeta {
   final String id;
   final String filename;
   final File metaFile;
-  DownloadType type;
-  DateTime downloadDate;
+  final DownloadType type;
+  final DateTime downloadDate;
   DateTime watchDate;
+  String title;
+  bool complete;
 
-  DownloadMeta(
-    this.videoMeta,
-    this.id,
-    this.filename,
-    this.metaFile,
-    this.type, [
-    this.downloadDate,
-    this.watchDate,
-  ]) {
-    if (downloadDate == null) downloadDate = DateTime.now();
-    if (watchDate == null) watchDate = downloadDate;
-  }
+  DownloadMeta({
+    @required this.videoMeta,
+    @required this.id,
+    @required this.filename,
+    @required this.metaFile,
+    @required this.type,
+    DateTime downloadDate,
+    DateTime watchDate,
+    this.title,
+    this.complete = true,
+  })  : this.downloadDate = downloadDate ?? DateTime.now(),
+        this.watchDate = watchDate ?? DateTime.now();
+
+  String get displayTitle => title ?? videoMeta.title;
 
   String toJson() {
     return jsonEncode({
@@ -36,8 +41,15 @@ class DownloadMeta {
       "filename": filename,
       "type": type.index,
       "downloadDate": downloadDate.millisecondsSinceEpoch,
-      "watchDate": watchDate.millisecondsSinceEpoch
+      "watchDate": watchDate.millisecondsSinceEpoch,
+      "name": title,
+      "complete": complete
     });
+  }
+
+  Future<DownloadMeta> save() async {
+    await metaFile.writeAsString(toJson());
+    return this;
   }
 
   Future<void> delete() async {
@@ -47,20 +59,26 @@ class DownloadMeta {
   factory DownloadMeta.fromJson(String json, File file) {
     var data = jsonDecode(json);
     return DownloadMeta(
-      data["videoMeta"] != null
-          ? yt.VideoMeta.fromJson(data["videoMeta"])
-          : null,
-      data["id"],
-      data["filename"],
-      file,
-      data["type"] != null ? DownloadType.values[data["type"]] : null,
-      data["downloadDate"] != null
-          ? DateTime.fromMicrosecondsSinceEpoch(data["downloadDate"])
-          : null,
-      data["watchDate"] != null
-          ? DateTime.fromMicrosecondsSinceEpoch(data["watchDate"])
-          : null,
-    );
+        videoMeta: data["videoMeta"] != null
+            ? yt.VideoMeta.fromJson(data["videoMeta"])
+            : null,
+        id: data["id"],
+        filename: data["filename"],
+        metaFile: file,
+        type: data["type"] != null ? DownloadType.values[data["type"]] : null,
+        downloadDate: data["downloadDate"] != null
+            ? DateTime.fromMicrosecondsSinceEpoch(data["downloadDate"])
+            : null,
+        watchDate: data["watchDate"] != null
+            ? DateTime.fromMicrosecondsSinceEpoch(data["watchDate"])
+            : null,
+        title: data["name"],
+        complete: data["complete"] ?? true);
+  }
+
+  static Future<DownloadMeta> fromFile(File metaFile) async {
+    var json = await metaFile.readAsString();
+    return DownloadMeta.fromJson(json, metaFile);
   }
 }
 
