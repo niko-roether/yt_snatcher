@@ -14,4 +14,7 @@ songs into playlists and listen to them anytime I want in the background.
 
 ## What's currently done
 
-- nothing
+- downloading music
+- downloading video and audio
+- muxing video and audio locally (though slow as heck)
+- playing downloaded videos and music (sort of patched together though, not finalized at all)
