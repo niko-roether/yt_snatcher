@@ -4,6 +4,6 @@ import 'package:yt_snatcher/screens/home/downloads_display.dart';
 class Music extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return DownloadsDisplay((dlm) => dlm.getMusic());
+    return DownloadsDisplay(selector: (dlm) => dlm.getMusic());
   }
 }
