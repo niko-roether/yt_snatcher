@@ -1,11 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/util.dart';
 import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
 // TODO add option to customize video quality
-
-enum DownloadType { VIDEO, MUSIC }
 
 class _DownloadInfo {
   String id;
