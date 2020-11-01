@@ -39,6 +39,6 @@ flutter:
           style: italic
         - asset: fonts/OpenSans-Bold.ttf
           weight: 700
-        - asset: fonts/OpenSans-BoldItalic-ttf
+        - asset: fonts/OpenSans-BoldItalic.ttf
           style: italic
           weight: 700
