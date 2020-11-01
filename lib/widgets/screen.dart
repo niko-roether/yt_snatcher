@@ -6,17 +6,20 @@ class Screen extends StatelessWidget {
   final Widget content;
   final bool showSettings;
   final Widget navigationBar;
+  final Key key;
 
   Screen({
     @required this.title,
     @required this.content,
     this.navigationBar,
     this.showSettings = true,
+    this.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: key,
       appBar: AppBar(title: this.title, actions: [
         Conditional.single(
           context: context,

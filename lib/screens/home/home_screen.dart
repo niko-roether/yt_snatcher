@@ -25,6 +25,7 @@ class HomeScreenState extends State<HomeScreen> {
       title: Text("Youtube Snatcher"),
       content: _pages[_pageIndex],
       navigationBar: NavBar(currentIndex: _pageIndex, onTap: _onTapNavItem),
+      key: Key(HomeScreen.ROUTENAME),
     );
   }
 
