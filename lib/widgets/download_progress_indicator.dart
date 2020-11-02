@@ -13,18 +13,21 @@ class DownloadProgressIndicator extends StatelessWidget {
   final String semanticName;
   final Color bgColor;
   final Animation<Color> barColor;
+  final Widget trailing;
+  final void Function() onCancel;
 
-  DownloadProgressIndicator({
-    @required this.title,
-    this.subtitle,
-    @required this.progress,
-    this.stage = "Loading",
-    this.thumbnailUrl,
-    this.thumbnailWidth = 100,
-    this.semanticName = "content",
-    this.bgColor,
-    this.barColor,
-  });
+  DownloadProgressIndicator(
+      {@required this.title,
+      this.subtitle,
+      @required this.progress,
+      this.stage = "Loading",
+      this.thumbnailUrl,
+      this.thumbnailWidth = 100,
+      this.semanticName = "content",
+      this.bgColor,
+      this.barColor,
+      this.trailing,
+      this.onCancel});
 
   String get _percent {
     if (progress == null) return "";
@@ -34,7 +37,6 @@ class DownloadProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
     return ListTile(
       leading: Conditional.single(
         context: context,
@@ -61,46 +63,29 @@ class DownloadProgressIndicator extends StatelessWidget {
           alignment: Alignment.center,
         )
       ]),
+      trailing: IconButton(
+        icon: Icon(Icons.cancel),
+        onPressed: () => showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Cancel download?"),
+            content: Text("Are you shure you want to cancel this download?"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  onCancel?.call();
+                  Navigator.pop(context);
+                },
+                child: Text("YES"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("NO"),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
-    // final content = Padding(
-    //   child: Column(
-    //     children: [
-    //       Text(
-    //         this.title,
-    //         overflow: TextOverflow.ellipsis,
-    //         style: theme.textTheme.subtitle1,
-    //       ),
-    //       Text(this.subtitle ?? "", style: theme.textTheme.subtitle2),
-    //       Padding(
-    //         child: LinearProgressIndicator(
-    //           value: progress,
-    //           semanticsLabel: "Downloading $semanticName",
-    //           semanticsValue: _percent,
-    //           backgroundColor: bgColor,
-    //           valueColor: barColor,
-    //         ),
-    //         padding: EdgeInsets.fromLTRB(0, 8, 0, 4),
-    //       ),
-    //       Align(
-    //         child: Text(
-    //           "${capitalize(stage)}... $_percent",
-    //         ),
-    //         alignment: Alignment.center,
-    //       )
-    //     ],
-    //     mainAxisSize: MainAxisSize.min,
-    //     crossAxisAlignment: CrossAxisAlignment.start,
-    //   ),
-    //   padding: EdgeInsets.symmetric(horizontal: 8),
-    // );
-    // return Conditional.single(
-    //   context: context,
-    //   conditionBuilder: (c) => thumbnailUrl != null,
-    //   widgetBuilder: (c) => Row(children: [
-    //     Image.network(thumbnailUrl, width: thumbnailWidth),
-    //     Expanded(child: content),
-    //   ]),
-    //   fallbackBuilder: (c) => content,
-    // );
   }
 }

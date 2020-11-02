@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:yt_snatcher/services/downloader.dart';
 import 'package:yt_snatcher/services/youtube.dart' as yt;
 import 'package:yt_snatcher/services/download_manager.dart' as dlm;
 import 'downloader.dart' as dl;
@@ -12,18 +13,20 @@ class DownloadProgress {
   DownloadProgress(this.progress, this.stage);
 }
 
-abstract class Downloader {
+abstract class MediaDownloader {
   final dl.Downloader _downloader;
   final yt.VideoMeta _meta;
+  DownloadProcess _downloadProcess;
   int _byteCount = 0;
   String _stage = "Preparing";
   final StreamController<DownloadProgress> _progressStreamController =
       StreamController.broadcast();
 
-  Downloader(this._meta, this._downloader);
+  MediaDownloader(this._meta, this._downloader);
 
   int get byteCount => _byteCount;
   String get stage => _stage;
+  DownloadProcess get process => _downloadProcess;
 
   Stream<DownloadProgress> get progressStream =>
       _progressStreamController.stream;
@@ -34,7 +37,12 @@ abstract class Downloader {
     _progressStreamController.add(evt);
   }
 
-  Future<dlm.Download> download();
+  Future<dl.DownloadProcess> _download();
+
+  Future<dlm.Download> download() async {
+    _downloadProcess = await _download();
+    return _downloadProcess.done;
+  }
 
   @mustCallSuper
   void _completed() {
@@ -46,7 +54,7 @@ abstract class Downloader {
   double get progress => _byteCount == null ? null : _byteCount / _size;
 }
 
-class VideoDownloader extends Downloader {
+class VideoDownloader extends MediaDownloader {
   yt.VideoMedia _video;
   yt.AudioMedia _audio;
 
@@ -58,8 +66,8 @@ class VideoDownloader extends Downloader {
   ) : super(meta, downloader);
 
   @override
-  Future<dlm.Download> download() async {
-    var dl = await _downloader.downloadVideo(
+  Future<dl.DownloadProcess> _download() async {
+    var process = await _downloader.downloadVideo(
       _meta.id,
       _meta,
       _video,
@@ -70,26 +78,27 @@ class VideoDownloader extends Downloader {
           _progressEvent(_byteCount = null, stage);
           return;
         }
+        if (_byteCount == null) _byteCount = 0;
         _byteCount += bytes;
         _progressEvent(progress, stage);
       },
     );
-    _completed();
-    return dl;
+    process.done.then((dl) => _completed());
+    return process;
   }
 
   @override
   int get _size => _video.size + _audio.size;
 }
 
-class MusicDownloader extends Downloader {
+class MusicDownloader extends MediaDownloader {
   yt.AudioMedia _media;
   MusicDownloader(yt.VideoMeta meta, this._media, dl.Downloader downloader)
       : super(meta, downloader);
 
   @override
-  Future<dlm.Download> download() async {
-    var dl = await _downloader.downloadMusic(
+  Future<dl.DownloadProcess> _download() async {
+    var process = await _downloader.downloadMusic(
       _meta.id,
       _meta,
       _media,
@@ -99,15 +108,15 @@ class MusicDownloader extends Downloader {
         _progressEvent(_byteCount / (_media.size), "Loading");
       },
     );
-    _completed();
-    return dl;
+    process.done.then((dl) => _completed());
+    return process;
   }
 
   @override
   int get _size => _media.size;
 }
 
-abstract class DownloaderSet<D extends Downloader> {
+abstract class DownloaderSet<D extends MediaDownloader> {
   final yt.Video video;
   final dl.Downloader _downloader;
 

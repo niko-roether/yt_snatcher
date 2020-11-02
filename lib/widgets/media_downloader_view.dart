@@ -5,12 +5,12 @@ import 'package:yt_snatcher/services/youtube-dl.dart';
 import 'package:yt_snatcher/services/youtube.dart';
 import 'package:yt_snatcher/widgets/download_progress_indicator.dart';
 
-class DownloaderView extends StatefulWidget {
-  final Downloader downloader;
+class MediaDownloaderView extends StatefulWidget {
+  final MediaDownloader downloader;
   final VideoMeta meta;
   final bool pending;
 
-  DownloaderView({
+  MediaDownloaderView({
     @required this.downloader,
     @required this.meta,
     this.pending = false,
@@ -18,11 +18,11 @@ class DownloaderView extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DownloaderViewState();
+    return MediaDownloaderViewState();
   }
 }
 
-class DownloaderViewState extends State<DownloaderView> {
+class MediaDownloaderViewState extends State<MediaDownloaderView> {
   double _progress;
   String _stage = "Preparing";
   StreamSubscription _subscription;
@@ -54,6 +54,7 @@ class DownloaderViewState extends State<DownloaderView> {
         thumbnailUrl: widget.meta?.thumbnails?.lowRes ?? null,
         semanticName: widget.meta?.title ?? "content",
         bgColor: widget.pending ? Colors.grey : null,
+        onCancel: () => widget.downloader.process.cancel(),
       ),
       padding: EdgeInsets.all(4),
     );

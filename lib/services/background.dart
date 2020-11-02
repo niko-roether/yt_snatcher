@@ -1,13 +1,44 @@
 import 'dart:async';
 import 'dart:isolate';
 
-class InvalidTaskReturnTypeException implements Exception {
-  final Type type;
+class MalformedTaskReturnError extends Error {
+  final dynamic data;
 
-  InvalidTaskReturnTypeException(this.type);
+  MalformedTaskReturnError(this.data);
 
   @override
-  String toString() => "Task returned value of invalid type $type";
+  String toString() =>
+      "Task returned malformed data: $data\n\nPlease use the static methods Task.event and task.end";
+}
+
+class TaskReturnTypeError extends TypeError {
+  final Type type;
+
+  TaskReturnTypeError(this.type);
+
+  @override
+  String toString() => "Task returned data of invalid type $type";
+}
+
+class TaskProcess<R> {
+  final Task<dynamic, R> _task;
+  final Future<R> _returnFuture;
+
+  TaskProcess(this._task, this._returnFuture);
+
+  Future<R> get done => _returnFuture;
+
+  void cancel() => _task.stop();
+}
+
+enum TaskReturnType { END, EVENT }
+
+class TaskReturn<T> {
+  final TaskReturnType type;
+  final T data;
+  final String eventName;
+
+  TaskReturn(this.type, this.data, [this.eventName]);
 }
 
 enum TaskState { DORMANT, RUNNING }
@@ -31,19 +62,39 @@ class Task<A, R> {
     return completer.future.then((v) => v as T);
   }
 
-  static Map<String, dynamic> createEvent(dynamic value, [String name]) {
-    return {"type": "event", "name": name, "value": value};
+  static void event(dynamic value, SendPort port, [String name]) {
+    port.send(TaskReturn(TaskReturnType.EVENT, value, name));
+  }
+
+  static void end<T>(T value, SendPort port) {
+    port.send(TaskReturn<T>(TaskReturnType.END, value, "return"));
   }
 
   Task(this._process, [this.name = "Unnamed Task"]);
 
   void _log(String message) => print("[$name] $message");
 
+  static void _handleResponse<R>(
+    dynamic data, {
+    void Function(dynamic value, String name) onEvent,
+    void Function(R) onReturn,
+  }) {
+    if (!(data is TaskReturn)) throw MalformedTaskReturnError(data);
+    if (!(data is TaskReturn<R>)) throw TaskReturnTypeError(data.runtimeType);
+    TaskReturn<R> ret = data;
+    switch (ret.type) {
+      case TaskReturnType.EVENT:
+        onEvent?.call(ret.data, ret.eventName);
+        break;
+      case TaskReturnType.END:
+        onReturn?.call(ret.data);
+    }
+  }
+
   Future<R> _initTask(
-    A arg, [
-    bool ignoreInvalidType = false,
-    void Function(dynamic) listener,
-  ]) {
+    A arg, {
+    void Function(dynamic value, String name) eventListener,
+  }) {
     _mainRecievePort = ReceivePort();
     _completer = Completer<R>();
     bool recievedSendPort = false;
@@ -53,35 +104,33 @@ class Task<A, R> {
           data.send(arg);
         else
           _log("Task created more than one send port! Ignoring...");
-      } else if (data is Map<String, dynamic> && data["type"] == "event") {
-        listener?.call(data["value"]);
-      } else {
-        if (!(data is R) && !ignoreInvalidType)
-          throw InvalidTaskReturnTypeException(data.runtimeType);
-        _log("Task returned value $data");
-        _completer.complete(data);
-      }
+      } else
+        _handleResponse(
+          data,
+          onEvent: (e, n) => eventListener?.call(e, n),
+          onReturn: (r) => _completer.complete(r),
+        );
     });
     return _completer.future;
   }
 
-  Future<R> execute(
-    A arg, [
-    bool ignoreInvalidType = false,
-    Function(dynamic) listener,
-  ]) async {
+  Future<TaskProcess<R>> execute(
+    A arg, {
+    Function(dynamic value, String name) eventListener,
+  }) async {
     stop();
     _state = TaskState.RUNNING;
-    var retFuture = _initTask(arg, ignoreInvalidType ?? false, listener);
+    var retFuture = _initTask(arg, eventListener: eventListener);
     _isolate = await Isolate.spawn(
       _process,
       _mainRecievePort.sendPort,
       debugName: name,
     );
-    var ret = await retFuture;
-    _state = TaskState.DORMANT;
-    stop();
-    return ret;
+    return TaskProcess(this, retFuture.then((ret) {
+      _state = TaskState.DORMANT;
+      stop();
+      return ret;
+    }));
   }
 
   void stop() {
@@ -94,18 +143,18 @@ class Task<A, R> {
 }
 
 class _QueuedTask<A, R> {
-  final _completer = Completer<R>();
+  final _completer = Completer<TaskProcess<R>>();
   final A arg;
-  final Function(dynamic) _listener;
+  final Function(dynamic value, String name) _listener;
 
   _QueuedTask(this.arg, this._listener);
 
   void latch(Task<A, R> task) async {
-    var ret = await task.execute(arg, false, _listener);
-    _completer.complete(ret);
+    var process = await task.execute(arg, eventListener: _listener);
+    _completer.complete(process);
   }
 
-  Future<R> wait() => _completer.future;
+  Future<TaskProcess<R>> process() => _completer.future;
 }
 
 class TaskPool<A, R> {
@@ -137,7 +186,8 @@ class TaskPool<A, R> {
     _next(task);
   }
 
-  Future<R> doTask(A arg, [void Function(dynamic) listener]) async {
+  Future<TaskProcess<R>> doTask(A arg,
+      [void Function(dynamic value, String name) listener]) async {
     var task = _tasks.firstWhere(
       (t) => t.state == TaskState.DORMANT,
       orElse: () => null,
@@ -146,10 +196,10 @@ class TaskPool<A, R> {
       _log("Queueing with argument $arg");
       var queued = _QueuedTask<A, R>(arg, listener);
       _queue.add(queued);
-      return queued.wait();
+      return queued.process();
     }
     _log("Performing with argument $arg on ${task.name}");
-    var res = await task.execute(arg, false, listener);
+    var res = await task.execute(arg, eventListener: listener);
     _next(task);
     return res;
   }

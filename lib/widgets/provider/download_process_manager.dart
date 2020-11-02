@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:yt_snatcher/services/download_manager.dart' as dlm;
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/services/youtube-dl.dart';
 import 'package:yt_snatcher/services/youtube.dart';
@@ -17,22 +18,22 @@ class DuplicateDownloadError extends Error {
   }
 }
 
-class DownloadProcess {
-  final Downloader downloader;
+class OngoingDownload {
+  final MediaDownloader downloader;
   final VideoMeta meta;
-  final DownloadType type;
+  final dlm.DownloadType type;
 
-  DownloadProcess(this.meta, this.downloader, this.type);
+  OngoingDownload(this.meta, this.downloader, this.type);
 
-  Future<Download> start() => downloader.download();
+  Future<dlm.Download> start() => downloader.download();
 }
 
 class DownloadService extends InheritedWidget {
   static final _ytdl = YoutubeDL();
-  static final _dlm = DownloadManager();
-  final void Function(DownloadProcess process) add;
-  final void Function(DownloadProcess process) remove;
-  final List<DownloadProcess> currentDownloads;
+  static final _dlm = dlm.DownloadManager();
+  final void Function(OngoingDownload process) add;
+  final void Function(OngoingDownload process) remove;
+  final List<OngoingDownload> currentDownloads;
 
   DownloadService({
     Key key,
@@ -52,7 +53,7 @@ class DownloadService extends InheritedWidget {
     return _dlm.checkDuplicate(id, type);
   }
 
-  Future<Download> _download<D extends Downloader>(
+  Future<Download> _download<D extends MediaDownloader>(
     DownloaderSet dlset,
     DownloadType type, [
     FutureOr<D> Function(DownloaderSet<D>) selector,
@@ -60,7 +61,7 @@ class DownloadService extends InheritedWidget {
     if (await _checkDuplicate(dlset.video.id, type))
       throw DuplicateDownloadError(dlset.video.id, type);
     var downloader = await selector?.call(dlset) ?? dlset.best();
-    var process = DownloadProcess(dlset.video, downloader, type);
+    var process = OngoingDownload(dlset.video, downloader, type);
     add(process);
     var dl = await downloader.download().catchError((e) {
       remove(process);
@@ -90,7 +91,7 @@ class DownloadService extends InheritedWidget {
         selector,
       );
 
-  DownloadProcess getDownload(String id, DownloadType type) {
+  OngoingDownload getDownload(String id, DownloadType type) {
     return currentDownloads.firstWhere(
       (dl) => dl.meta.id == id && dl.type == type,
     );
@@ -119,10 +120,10 @@ class DownloadProcessManager extends StatefulWidget {
 }
 
 class DownloadProcessManagerState extends State<DownloadProcessManager> {
-  List<DownloadProcess> _processes = [];
+  List<OngoingDownload> _processes = [];
 
-  void _add(DownloadProcess process) => setState(() => _processes.add(process));
-  void _remove(DownloadProcess process) =>
+  void _add(OngoingDownload process) => setState(() => _processes.add(process));
+  void _remove(OngoingDownload process) =>
       setState(() => _processes.remove(process));
 
   @override

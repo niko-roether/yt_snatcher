@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -8,7 +9,25 @@ import 'background.dart';
 
 import 'youtube.dart' as yt;
 import 'files.dart' as fs;
-import 'merger.dart' as mg;
+import 'ffmpeg.dart';
+
+class DownloadProcess<R extends Download> {
+  final TaskProcess<R> _process;
+  List<FutureOr<R> Function(R result)> _thenFunctions = [];
+  final _completer = Completer<R>();
+
+  DownloadProcess(this._process, {FutureOr<R> Function(R result) then}) {
+    if (then != null) _thenFunctions.add(then);
+    _process.done.then((dl) async {
+      var dlProcessed = then != null ? then(dl) : dl;
+      _completer.complete(dlProcessed);
+    });
+  }
+
+  Future<R> get done => _completer.future;
+
+  void cancel() => _process.cancel();
+}
 
 class _UnmergedVideoDownload extends Download {
   File videoFile;
@@ -71,7 +90,7 @@ Stream<List<int>> _monitoredStream(
 class Downloader {
   static const _NUM_DOWNLOAD_THREADS = 5;
   fs.FileManager _fileManager;
-  static final _merger = mg.Merger();
+  static final _ffmpeg = FFmpeg();
   static final _musicDownloadTaskPool =
       TaskPool<_AudioDownloadInstructions, Download>(
     _musicDownloadTask,
@@ -89,37 +108,34 @@ class Downloader {
     _AudioDownloadInstructions ins = await Task.getArg(port);
     final fm = fs.FileManager(ins.localPath);
     final youtube = yt.Youtube();
-    var filename = "${ins.name}.${ins.codec}";
+    var filename = ins.name;
     var dl = await _createDownload(
-      _downloadMusicMeta(ins.name, filename, ins.getMeta(), fm),
+      _downloadMusicMeta(filename, ins.getMeta(), fm),
       _downloadMusicMedia(
         filename,
         youtube.getStreamFromInfo(ins.media),
         fm,
-        (p) => port.send(Task.createEvent(p)),
+        (p) => Task.event(p, port, "progress"),
       ),
     );
-    port.send(dl);
+    Task.end(dl, port);
   }
 
   static void _videoDownloadTask(SendPort port) async {
     _VideoDownloadInstructions ins = await Task.getArg(port);
     final fm = fs.FileManager(ins.localPath);
     final youtube = yt.Youtube();
-    var filename = _mergedFilename(ins.name, ins.videoContainer);
     var dl = await _createDownload(
-      _downloadVideoMeta(ins.name, filename, ins.getMeta(), fm),
+      _downloadVideoMeta(ins.name, ins.getMeta(), fm),
       _downloadVideoMedia(
-        filename,
+        ins.name,
         youtube.getStreamFromInfo(ins.video),
         youtube.getStreamFromInfo(ins.audio),
-        ins.videoContainer,
-        ins.audioCodec,
         fm,
-        (p) => port.send(Task.createEvent(p)),
+        (p) => Task.event(p, port, "progress"),
       ),
     );
-    port.send(dl);
+    Task.end(dl, port);
   }
 
   static Future<Download> _createDownload(
@@ -147,9 +163,7 @@ class Downloader {
     return null;
   }
 
-  static String _metaFileName(String name) => "$name.json";
-  static String _mergedFilename(String name, String container) =>
-      "$name.$container";
+  static String _metaFileName(String id) => "$id.json";
 
   static Future<List<File>> _downloadMusicMedia(
     String filename,
@@ -171,8 +185,6 @@ class Downloader {
     String filename,
     Stream<List<int>> video,
     Stream<List<int>> audio,
-    String videoContainer,
-    String audioCodec,
     fs.FileManager fileManager, [
     void Function(int) onProgress,
   ]) async {
@@ -181,7 +193,7 @@ class Downloader {
       (p) => onProgress(p),
     );
     var videoFileFuture = fileManager.streamTempFile(
-      "video_$filename.$videoContainer",
+      "video_$filename.temp",
       videoStream,
     );
 
@@ -190,7 +202,7 @@ class Downloader {
       (p) => onProgress(p),
     );
     var audioFileFuture = fileManager.streamTempFile(
-      "audio_$filename.$audioCodec",
+      "audio_$filename.temp",
       audioStream,
     );
 
@@ -201,9 +213,8 @@ class Downloader {
 
   static Future<File> _mergeVideoFiles(
     String filename,
-    String videoFile,
-    String audioFile,
-    Function(int) onProgress,
+    File videoFile,
+    File audioFile,
     fs.FileManager fileManager,
   ) async {
     var mergedFile = await fileManager.createLocalFile(
@@ -211,25 +222,31 @@ class Downloader {
       filename,
     );
 
-    await _merger.merge(videoFile, audioFile, mergedFile.path, onProgress);
-    File(videoFile).delete();
-    File(audioFile).delete();
+    await _ffmpeg.run(
+      [videoFile, audioFile],
+      mergedFile,
+      overwrite: true,
+      vcodec: "copy",
+      acodec: "aac",
+      format: "mp4",
+    );
+    videoFile.delete();
+    audioFile.delete();
 
     return mergedFile;
   }
 
   static Future<DownloadMeta> _downloadMeta({
     @required String path,
-    @required String name,
     @required String mediaFilename,
     @required yt.VideoMeta meta,
     @required DownloadType type,
     @required fs.FileManager fileManager,
   }) async {
-    var filename = _metaFileName(name);
+    var filename = _metaFileName(meta.id);
     var dlMeta = DownloadMeta(
       videoMeta: meta,
-      id: name,
+      id: meta.id,
       filename: mediaFilename,
       metaFile: await fileManager.createLocalFile(path, filename),
       type: type,
@@ -239,14 +256,12 @@ class Downloader {
   }
 
   static Future<DownloadMeta> _downloadMusicMeta(
-    String name,
     String mediaFilename,
     yt.VideoMeta meta,
     fs.FileManager fileManager,
   ) =>
       _downloadMeta(
         path: fs.FileManager.MUSIC_META_PATH,
-        name: name,
         mediaFilename: mediaFilename,
         meta: meta,
         type: DownloadType.MUSIC,
@@ -254,21 +269,19 @@ class Downloader {
       );
 
   static Future<DownloadMeta> _downloadVideoMeta(
-    String name,
     String mediaFilename,
     yt.VideoMeta meta,
     fs.FileManager fileManager,
   ) =>
       _downloadMeta(
         path: fs.FileManager.VIDEO_META_PATH,
-        name: name,
         mediaFilename: mediaFilename,
         meta: meta,
         type: DownloadType.VIDEO,
         fileManager: fileManager,
       );
 
-  Future<Download> downloadMusic(
+  Future<DownloadProcess> downloadMusic(
     String name,
     yt.VideoMeta meta,
     yt.AudioMedia media, [
@@ -281,16 +294,24 @@ class Downloader {
       name: name,
       localPath: await _fileManager.getLocalPath(),
     );
-    var download =
-        await _musicDownloadTaskPool.doTask(ins, (p) => onProgress(p));
-    if (download != null && await download.mediaFile.exists()) {
-      download.meta.complete = true;
-      download.meta.save();
-    }
-    return download;
+    var process =
+        await _musicDownloadTaskPool.doTask(ins, (p, n) => onProgress(p));
+    return DownloadProcess(process, then: (dl) async {
+      if (dl == null) {
+        print("The download process returned null!");
+        return;
+      }
+      if (await dl.mediaFile.exists()) {
+        dl.meta.complete = true;
+        dl.meta.save();
+        return;
+      }
+      dl.delete();
+      return null;
+    });
   }
 
-  Future<Download> downloadVideo(
+  Future<DownloadProcess> downloadVideo(
     String name,
     yt.VideoMeta meta,
     yt.VideoMedia video,
@@ -306,26 +327,30 @@ class Downloader {
       videoContainer: video.container,
       localPath: await _fileManager.getLocalPath(),
     );
-    var unmerged = await _videoDownloadTaskPool
+    final process = await _videoDownloadTaskPool
         .doTask(
           ins,
-          (p) => onProgress(p, "Loading"),
+          (p, n) => onProgress(p, "Loading"),
         )
         .catchError((e) => throw e);
-    var mergedFile = await _mergeVideoFiles(
-      _mergedFilename(name, video.container),
-      unmerged.videoFile.path,
-      unmerged.audioFile.path,
-      (p) => onProgress(p, "Processing"),
-      _fileManager,
-    );
 
-    var download = Download(unmerged.meta, mergedFile);
-    if (download != null && await download.mediaFile.exists()) {
-      download.meta.complete = true;
-      await download.meta.save();
-      return download;
-    }
-    throw Exception("Well something went wrong...");
+    return DownloadProcess<Download>(process, then: (dl) async {
+      onProgress(null, "Processing");
+      final _UnmergedVideoDownload unmerged = dl;
+      final mergedFile = await _mergeVideoFiles(
+        name,
+        unmerged.videoFile,
+        unmerged.audioFile,
+        _fileManager,
+      );
+
+      var download = Download(unmerged.meta, mergedFile);
+      if (download != null && await download.mediaFile.exists()) {
+        download.meta.complete = true;
+        await download.meta.save();
+        return download;
+      }
+      throw Exception("Well something went wrong...");
+    });
   }
 }

@@ -19,6 +19,7 @@ class DownloadsDisplay extends StatefulWidget {
 class DownloadsDisplayState extends State<DownloadsDisplay> {
   DownloadManager _dlm;
   List<Download> _downloads;
+  StreamSubscription<List<Download>> _refreshStreamSubscription;
 
   Future<List<Download>> _update() async {
     return Future.value(widget.selector(_dlm))
@@ -30,8 +31,15 @@ class DownloadsDisplayState extends State<DownloadsDisplay> {
   }
 
   Future<void> _refresh() async {
-    var dlset = await _update();
-    setState(() => _downloads = dlset);
+    _refreshStreamSubscription = _update().asStream().listen((dlset) {
+      setState(() => _downloads = dlset);
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshStreamSubscription?.cancel();
+    super.dispose();
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/widgets/consumer.dart';
-import 'package:yt_snatcher/widgets/downloader_view.dart';
+import 'package:yt_snatcher/widgets/media_downloader_view.dart';
 import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
 class DownloadProcessesDisplay extends StatelessWidget {
@@ -18,7 +18,7 @@ class DownloadProcessesDisplay extends StatelessWidget {
         return ListView.builder(
           itemBuilder: (context, i) {
             var process = processes[i];
-            return DownloaderView(
+            return MediaDownloaderView(
               downloader: process.downloader,
               meta: process.meta,
             );
