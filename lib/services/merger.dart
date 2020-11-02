@@ -3,27 +3,27 @@ import 'dart:io';
 
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 
-class MuxerUserCancelException implements Exception {
+class MergerUserCancelException implements Exception {
   @override
   String toString() {
-    return "The muxing process was interrupted by the user.";
+    return "The merging process was interrupted by the user.";
   }
 }
 
-class MuxerException extends Error {
+class MergerException extends Error {
   int errcode;
 
-  MuxerException(this.errcode);
+  MergerException(this.errcode);
 
   @override
   String toString() {
-    return "The muxing process ran into a problem. Error Code: $errcode";
+    return "The merging process ran into a problem. Error Code: $errcode";
   }
 }
 
-class Muxer {
+class Merger {
   // Taken straight from youtube-dl. Might adjust further if I find the time
-  static const FFMPEG_MUXING_ARGS = ["-vcodec", "copy", "-y"];
+  static const FFMPEG_MERGING_ARGS = ["-vcodec", "copy", "-y"];
   static final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
 
   static void _evaluateErrorCode(int errcode) {
@@ -31,9 +31,9 @@ class Muxer {
       case 0:
         return;
       case 255:
-        throw MuxerUserCancelException();
+        throw MergerUserCancelException();
       default:
-        throw MuxerException(errcode);
+        throw MergerException(errcode);
     }
   }
 
@@ -52,7 +52,7 @@ class Muxer {
     return File(output);
   }
 
-  Future<File> mux(
+  Future<File> merge(
     String file1,
     String file2,
     String out, [
@@ -62,7 +62,7 @@ class Muxer {
       Duration(seconds: 1),
       (timer) => onProgress(null),
     );
-    var res = await _execute([file1, file2], out, FFMPEG_MUXING_ARGS);
+    var res = await _execute([file1, file2], out, FFMPEG_MERGING_ARGS);
     timer.cancel();
     return res;
   }

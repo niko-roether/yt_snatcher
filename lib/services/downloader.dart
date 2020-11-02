@@ -8,13 +8,13 @@ import 'background.dart';
 
 import 'youtube.dart' as yt;
 import 'files.dart' as fs;
-import 'muxer.dart' as mx;
+import 'merger.dart' as mg;
 
-class _UnmuxedVideoDownload extends Download {
+class _UnmergedVideoDownload extends Download {
   File videoFile;
   File audioFile;
 
-  _UnmuxedVideoDownload(DownloadMeta meta, this.videoFile, this.audioFile)
+  _UnmergedVideoDownload(DownloadMeta meta, this.videoFile, this.audioFile)
       : super(meta, videoFile);
 }
 
@@ -30,7 +30,7 @@ abstract class _DownloadInstructions {
 
 class _VideoDownloadInstructions extends _DownloadInstructions {
   final yt.MediaInfo video;
-  final String videoCodec;
+  final String videoContainer;
   final yt.MediaInfo audio;
   final String audioCodec;
 
@@ -39,7 +39,7 @@ class _VideoDownloadInstructions extends _DownloadInstructions {
     @required String metaJson,
     @required this.video,
     @required this.audio,
-    @required this.videoCodec,
+    @required this.videoContainer,
     @required this.audioCodec,
     @required String localPath,
   }) : super(name, metaJson, localPath);
@@ -71,14 +71,14 @@ Stream<List<int>> _monitoredStream(
 class Downloader {
   static const _NUM_DOWNLOAD_THREADS = 5;
   fs.FileManager _fileManager;
-  static final _muxer = mx.Muxer();
+  static final _merger = mg.Merger();
   static final _musicDownloadTaskPool =
       TaskPool<_AudioDownloadInstructions, Download>(
     _musicDownloadTask,
     _NUM_DOWNLOAD_THREADS,
   );
   static final _videoDownloadTaskPool =
-      TaskPool<_VideoDownloadInstructions, _UnmuxedVideoDownload>(
+      TaskPool<_VideoDownloadInstructions, _UnmergedVideoDownload>(
     _videoDownloadTask,
     _NUM_DOWNLOAD_THREADS,
   );
@@ -106,14 +106,14 @@ class Downloader {
     _VideoDownloadInstructions ins = await Task.getArg(port);
     final fm = fs.FileManager(ins.localPath);
     final youtube = yt.Youtube();
-    var filename = _muxedFileName(ins.name);
+    var filename = _mergedFilename(ins.name, ins.videoContainer);
     var dl = await _createDownload(
       _downloadVideoMeta(ins.name, filename, ins.getMeta(), fm),
       _downloadVideoMedia(
         filename,
         youtube.getStreamFromInfo(ins.video),
         youtube.getStreamFromInfo(ins.audio),
-        ins.videoCodec,
+        ins.videoContainer,
         ins.audioCodec,
         fm,
         (p) => port.send(Task.createEvent(p)),
@@ -143,12 +143,13 @@ class Downloader {
     if (mediaFiles.length == 1)
       return Download(meta, mediaFiles[0]);
     else if (mediaFiles.length == 2)
-      return _UnmuxedVideoDownload(meta, mediaFiles[0], mediaFiles[1]);
+      return _UnmergedVideoDownload(meta, mediaFiles[0], mediaFiles[1]);
     return null;
   }
 
   static String _metaFileName(String name) => "$name.json";
-  static String _muxedFileName(String name) => "$name.mkv";
+  static String _mergedFilename(String name, String container) =>
+      "$name.$container";
 
   static Future<List<File>> _downloadMusicMedia(
     String filename,
@@ -198,23 +199,23 @@ class Downloader {
     return files;
   }
 
-  static Future<File> _muxVideoFiles(
+  static Future<File> _mergeVideoFiles(
     String filename,
     String videoFile,
     String audioFile,
     Function(int) onProgress,
     fs.FileManager fileManager,
   ) async {
-    var muxedFile = await fileManager.createLocalFile(
+    var mergedFile = await fileManager.createLocalFile(
       fs.FileManager.VIDEO_PATH,
-      _muxedFileName(filename),
+      filename,
     );
 
-    await _muxer.mux(videoFile, audioFile, muxedFile.path, onProgress);
+    await _merger.merge(videoFile, audioFile, mergedFile.path, onProgress);
     File(videoFile).delete();
     File(audioFile).delete();
 
-    return muxedFile;
+    return mergedFile;
   }
 
   static Future<DownloadMeta> _downloadMeta({
@@ -302,24 +303,24 @@ class Downloader {
       metaJson: meta.toJson(),
       name: name,
       video: video.getInfo(),
-      videoCodec: video.container,
+      videoContainer: video.container,
       localPath: await _fileManager.getLocalPath(),
     );
-    var unmuxed = await _videoDownloadTaskPool
+    var unmerged = await _videoDownloadTaskPool
         .doTask(
           ins,
           (p) => onProgress(p, "Loading"),
         )
         .catchError((e) => throw e);
-    var muxedFile = await _muxVideoFiles(
-      name,
-      unmuxed.videoFile.path,
-      unmuxed.audioFile.path,
+    var mergedFile = await _mergeVideoFiles(
+      _mergedFilename(name, video.container),
+      unmerged.videoFile.path,
+      unmerged.audioFile.path,
       (p) => onProgress(p, "Processing"),
       _fileManager,
     );
 
-    var download = Download(unmuxed.meta, muxedFile);
+    var download = Download(unmerged.meta, mergedFile);
     if (download != null && await download.mediaFile.exists()) {
       download.meta.complete = true;
       await download.meta.save();
