@@ -129,11 +129,7 @@ abstract class DownloadSet {
   }
 
   bool _validateDownload(Download d) {
-    return !(d.mediaFile == null ||
-        d.meta == null ||
-        d.meta.videoMeta == null ||
-        (d.meta.type == DownloadType.VIDEO &&
-            !d.mediaFile.path.endsWith(".mkv")));
+    return d.mediaFile != null && d.meta != null && d.meta.videoMeta != null;
   }
 
   Future<List<Download>> getDownloads() async {
