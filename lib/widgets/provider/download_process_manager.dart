@@ -19,13 +19,26 @@ class DuplicateDownloadError extends Error {
 }
 
 class OngoingDownload {
-  final MediaDownloader downloader;
-  final VideoMeta meta;
+  final Future<MediaDownloader> _downloaderFuture;
+  MediaDownloader _downloader;
+  final Future<VideoMeta> _metaFuture;
+  VideoMeta _meta;
   final dlm.DownloadType type;
 
-  OngoingDownload(this.meta, this.downloader, this.type);
+  OngoingDownload(
+    FutureOr<VideoMeta> meta,
+    FutureOr<MediaDownloader> downloader,
+    this.type,
+  )   : _downloaderFuture = Future.value(downloader),
+        _metaFuture = Future.value(meta) {
+    _downloaderFuture.then((dl) => _downloader = dl);
+    _metaFuture.then((mt) => _meta = mt);
+  }
 
-  Future<dlm.Download> start() => downloader.download();
+  MediaDownloader get downloader => _downloader;
+  VideoMeta get meta => _meta;
+
+  Future<dlm.Download> start() async => (await _downloaderFuture).download();
 }
 
 class DownloadService extends InheritedWidget {
@@ -53,18 +66,30 @@ class DownloadService extends InheritedWidget {
     return _dlm.checkDuplicate(id, type);
   }
 
+  void _cancel(OngoingDownload process) {
+    process._downloaderFuture.then((mdl) => mdl?.process?.cancel());
+    remove(process);
+  }
+
   Future<Download> _download<D extends MediaDownloader>(
-    DownloaderSet dlset,
+    FutureOr<DownloaderSet> downloaderSet,
     DownloadType type, [
     FutureOr<D> Function(DownloaderSet<D>) selector,
   ]) async {
-    if (await _checkDuplicate(dlset.video.id, type))
-      throw DuplicateDownloadError(dlset.video.id, type);
-    var downloader = await selector?.call(dlset) ?? dlset.best();
-    var process = OngoingDownload(dlset.video, downloader, type);
+    var dlsetFuture = Future.value(downloaderSet);
+    var process = OngoingDownload(
+      dlsetFuture.then((dlset) => dlset.video),
+      dlsetFuture.then((dlset) => selector?.call(dlset) ?? dlset.best()),
+      type,
+    );
     add(process);
-    var dl = await downloader.download().catchError((e) {
-      remove(process);
+    var dlset = await dlsetFuture;
+    if (await _checkDuplicate(dlset.video.id, type)) {
+      _cancel(process);
+      throw DuplicateDownloadError(dlset.video.id, type);
+    }
+    var dl = await process.start().catchError((e) {
+      _cancel(process);
       throw e;
     });
     remove(process);
