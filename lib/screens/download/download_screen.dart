@@ -13,7 +13,10 @@ class DownloadScreen extends StatelessWidget {
       title: Text("Download Youtube Media"),
       content: Padding(
         padding: EdgeInsets.only(top: 18),
-        child: DownloadForm(initialDownloadType: type ?? DownloadType.VIDEO),
+        child: DownloadForm(
+          initialDownloadType: type ?? DownloadType.VIDEO,
+          onSubmit: () => Navigator.pop(context),
+        ),
       ),
     );
   }
