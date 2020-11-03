@@ -186,8 +186,10 @@ class TaskPool<A, R> {
     _next(task);
   }
 
-  Future<TaskProcess<R>> doTask(A arg,
-      [void Function(dynamic value, String name) listener]) async {
+  Future<TaskProcess<R>> doTask(
+    A arg, [
+    void Function(dynamic value, String name) listener,
+  ]) async {
     var task = _tasks.firstWhere(
       (t) => t.state == TaskState.DORMANT,
       orElse: () => null,
