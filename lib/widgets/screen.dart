@@ -55,4 +55,10 @@ class ScreenState extends State<Screen> {
       floatingActionButton: widget.fab,
     );
   }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 }
