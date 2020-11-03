@@ -6,7 +6,7 @@ class DownloadProvider extends InheritedWidget {
 
   DownloadProvider({@required Widget child}) : super(child: child);
 
-  static DownloadProvider of(BuildContext context) {
+  factory DownloadProvider.of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<DownloadProvider>();
   }
 

@@ -101,7 +101,7 @@ class DownloadService extends InheritedWidget {
   bool updateShouldNotify(DownloadService old) =>
       true; // TODO provide better condition as a rebuilt has major performance impact
 
-  static DownloadService of(BuildContext context) {
+  factory DownloadService.of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<DownloadService>();
   }
 }
