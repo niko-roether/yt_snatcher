@@ -65,10 +65,9 @@ String capitalize(String str) {
 }
 
 // The eleven character ID length might need to be adjusted in the future
-// Matches youtube video ids or urls, with or without either "http://"" or "https://"", and with or without "www.".
-// TODO allow queries like ?t=
+// Matches youtube urls and ids of various formats
 final _ytIdOrUrlRegex = RegExp(
-    "(?:^(?:http(?:s)?://)?(?:(?:www|m)\\.)?youtube\\.com/watch\\?v=)?([A-Za-z0-9_-]{11})\$");
+    "^(?:(?:https?:\\/\\/)?(?:youtu\\.be\\/|(?:(?:www|m)\\.)?youtube\\.com\\/watch\\?v=))?([A-Za-z0-9_-]{11})(?:(?:\\?|&)[A-Za-z][A-Za-z0-9_-]*=[^?&/=\\s]+)*\$");
 
 bool validateYoutubeUrlOrId(String urlOrId) {
   return _ytIdOrUrlRegex.hasMatch(urlOrId);
