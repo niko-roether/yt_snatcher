@@ -54,7 +54,7 @@ class MediaDownloaderViewState extends State<MediaDownloaderView> {
         thumbnailUrl: widget.meta?.thumbnails?.lowRes ?? null,
         semanticName: widget.meta?.title ?? "content",
         bgColor: widget.pending ? Colors.grey : null,
-        onCancel: () => widget.downloader.process.cancel(),
+        onCancel: () => widget.downloader.process?.cancel(),
       ),
       padding: EdgeInsets.all(4),
     );

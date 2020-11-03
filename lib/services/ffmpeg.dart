@@ -37,12 +37,14 @@ class FFmpeg {
     }
   }
 
-  List<String> _createCommand(Map<String, String> args, File output) {
+  List<String> _createCommand(Map<String, dynamic> args, File output) {
     return [
       ...args.entries
           .where((e) => e.key != null && e.value != null)
           .map((e) => MapEntry("-${e.key}", e.value))
-          .expand<String>((e) => [e.key, e.value])
+          .expand<String>((e) => e.value is Iterable
+              ? e.value.expand<String>((s) => <String>[e.key, s])
+              : [e.key, e.value])
           .where((a) => a != ""),
       output.path,
     ];
@@ -59,15 +61,16 @@ class FFmpeg {
     // will add more if necessary
   }) async {
     assert(overwrite != null);
-    var args = <String, String>{
-      ...Map.fromIterable(input, key: (i) => "i", value: (i) => i.path),
+    var args = <String, dynamic>{
+      "i": input.map((f) => f.path).toList(),
       "y": overwrite ? "" : null,
       "f": format,
       "c": codec,
       "c:v": vcodec,
       "c:a": acodec
     };
-    await _ffmpeg.executeWithArguments(_createCommand(args, output));
+    var code = await _ffmpeg.executeWithArguments(_createCommand(args, output));
+    _evaluateErrorCode(code);
     return output;
   }
 }

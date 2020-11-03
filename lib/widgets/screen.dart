@@ -1,12 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_conditional_rendering/conditional.dart';
+import 'package:yt_snatcher/widgets/provider/error_stream_provider.dart';
 
-class Screen extends StatelessWidget {
+class Screen extends StatefulWidget {
   final Widget title;
   final Widget content;
   final bool showSettings;
   final Widget navigationBar;
-  final Key key;
   final Widget fab;
 
   Screen({
@@ -14,18 +16,33 @@ class Screen extends StatelessWidget {
     @required this.content,
     this.navigationBar,
     this.showSettings = true,
-    this.key,
     this.fab,
   });
 
   @override
+  State<StatefulWidget> createState() {
+    return ScreenState();
+  }
+}
+
+class ScreenState extends State<Screen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  StreamSubscription _subscription;
+
+  @override
   Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
+    ErrorStreamProvider.of(context).errors.listen((error) {
+      _scaffoldKey.currentState.showSnackBar(
+        SnackBar(content: Text(error.toString()), backgroundColor: errorColor),
+      );
+    });
     return Scaffold(
-      key: key,
-      appBar: AppBar(title: this.title, actions: [
+      key: _scaffoldKey,
+      appBar: AppBar(title: widget.title, actions: [
         Conditional.single(
           context: context,
-          conditionBuilder: (context) => this.showSettings,
+          conditionBuilder: (context) => widget.showSettings,
           widgetBuilder: (context) => (IconButton(
             icon: Icon(Icons.settings),
             onPressed: () => Navigator.pushNamed(context, "/settings"),
@@ -33,9 +50,9 @@ class Screen extends StatelessWidget {
           fallbackBuilder: (context) => Container(),
         ),
       ]),
-      body: content,
-      bottomNavigationBar: navigationBar,
-      floatingActionButton: fab,
+      body: widget.content,
+      bottomNavigationBar: widget.navigationBar,
+      floatingActionButton: widget.fab,
     );
   }
 }

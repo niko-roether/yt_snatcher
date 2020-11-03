@@ -17,7 +17,6 @@ class PlayScreen extends StatelessWidget {
         dl.meta.type == DownloadType.VIDEO ? "Watch Video" : "Listen to Music",
       ),
       content: content,
-      key: Key(ROUTENAME),
     );
   }
 }

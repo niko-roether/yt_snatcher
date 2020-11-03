@@ -11,7 +11,6 @@ class DownloadScreen extends StatelessWidget {
     DownloadType type = ModalRoute.of(context).settings.arguments;
     return Screen(
       title: Text("Download Youtube Media"),
-      key: Key(ROUTENAME),
       content: Padding(
         padding: EdgeInsets.only(top: 18),
         child: DownloadForm(initialDownloadType: type ?? DownloadType.VIDEO),

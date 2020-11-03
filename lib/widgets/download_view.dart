@@ -32,17 +32,17 @@ class DownloadView extends StatelessWidget {
                 content: Text("Are you sure you want to delete this download?"),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text("NO"),
-                  ),
-                  TextButton(
                     onPressed: () async {
                       Navigator.pop(context);
                       await download.delete();
                       onChange?.call();
                     },
                     child: Text("YES"),
-                  )
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text("NO"),
+                  ),
                 ],
               ),
             );

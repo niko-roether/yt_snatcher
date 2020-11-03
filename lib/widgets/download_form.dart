@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/util.dart';
 import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
+import 'package:yt_snatcher/widgets/provider/error_stream_provider.dart';
 
 // TODO add option to customize video quality
 
@@ -24,8 +25,7 @@ class DownloadFormState extends State<DownloadForm> {
   final _formKey = GlobalKey<FormState>(debugLabel: "Download Form");
   var _downloadInfo = _DownloadInfo();
 
-  void _onError(
-      Object e, ScaffoldState scaffold, ThemeData theme, _DownloadInfo info) {
+  void _onError(Object e, ErrorStreamProvider errStream, _DownloadInfo info) {
     String message;
     switch (e.runtimeType) {
       case DuplicateDownloadError:
@@ -35,27 +35,22 @@ class DownloadFormState extends State<DownloadForm> {
         message = "Failed to download ${info.id}";
     }
 
-    scaffold.showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: theme.colorScheme.error,
-    ));
+    errStream.add(message);
   }
 
   void _download(BuildContext context, _DownloadInfo info) {
     final dpm = DownloadService.of(context);
-    final scaffold = Scaffold.of(context);
-    final theme = Theme.of(context);
-    print(scaffold);
+    final errStream = ErrorStreamProvider.of(context);
     switch (_downloadInfo.type) {
       case DownloadType.VIDEO:
         dpm
             .downloadVideo(info.id)
-            .catchError((e) => _onError(e, scaffold, theme, info));
+            .catchError((e) => _onError(e, errStream, info));
         break;
       case DownloadType.MUSIC:
         dpm
             .downloadMusic(info.id)
-            .catchError((e) => _onError(e, scaffold, theme, info));
+            .catchError((e) => _onError(e, errStream, info));
         break;
     }
   }
