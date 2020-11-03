@@ -18,17 +18,22 @@ class ServiceProvider extends StatefulWidget {
 
 class ServiceProviderState extends State<ServiceProvider> {
   final _errorStreamController = StreamController<Object>();
+  Stream<Object> _errorStream;
+
+  ServiceProviderState() {
+    _errorStream = _errorStreamController.stream.asBroadcastStream();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ErrorStreamProvider(
-      child: DownloadProvider(
-        child: DownloadProcessManager(
-          child: widget.child,
+        child: DownloadProvider(
+          child: DownloadProcessManager(
+            child: widget.child,
+          ),
         ),
-      ),
-      controller: _errorStreamController,
-    );
+        controller: _errorStreamController,
+        stream: _errorStream);
   }
 
   @override

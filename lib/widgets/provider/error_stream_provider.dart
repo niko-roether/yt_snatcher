@@ -9,10 +9,11 @@ class ErrorStreamProvider extends InheritedWidget {
 
   ErrorStreamProvider({
     Key key,
-    StreamController<Object> controller,
+    @required StreamController<Object> controller,
+    @required Stream<Object> stream,
     Widget child,
   })  : _controller = controller,
-        errors = controller.stream.asBroadcastStream(),
+        errors = stream,
         super(key: key, child: child);
 
   void add(Object error) => _controller.add(error);
