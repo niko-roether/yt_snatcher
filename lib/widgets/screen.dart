@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_conditional_rendering/conditional.dart';
-import 'package:yt_snatcher/widgets/provider/error_stream_provider.dart';
+import 'package:yt_snatcher/screens/settings/settings_screen.dart';
+import 'package:yt_snatcher/widgets/provider/error_provider.dart';
 
 class Screen extends StatefulWidget {
   final Widget title;
@@ -26,26 +27,39 @@ class Screen extends StatefulWidget {
 }
 
 class ScreenState extends State<Screen> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
-  StreamSubscription _subscription;
+  static final List<GlobalKey<ScaffoldState>> _scaffoldKeys = [];
+  static StreamSubscription _subscription;
+
+  static onError(Object error, ThemeData theme) {
+    _scaffoldKeys.last.currentState.showSnackBar(
+      SnackBar(
+        content: Text(error.toString()),
+        backgroundColor: theme.colorScheme.error,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final errorColor = Theme.of(context).colorScheme.error;
-    ErrorStreamProvider.of(context).errors.listen((error) {
-      _scaffoldKey.currentState.showSnackBar(
-        SnackBar(content: Text(error.toString()), backgroundColor: errorColor),
-      );
-    });
+    var key = GlobalKey<ScaffoldState>();
+    _scaffoldKeys.add(key);
+    if (_subscription == null) {
+      var theme = Theme.of(context);
+      _subscription =
+          ErrorProvider.of(context).stream.listen((e) => onError(e, theme));
+    }
     return Scaffold(
-      key: _scaffoldKey,
+      key: key,
       appBar: AppBar(title: widget.title, actions: [
         Conditional.single(
           context: context,
           conditionBuilder: (context) => widget.showSettings,
           widgetBuilder: (context) => (IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () => Navigator.pushNamed(context, "/settings"),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              SettingsScreen.ROUTENAME,
+            ),
           )),
           fallbackBuilder: (context) => Container(),
         ),
@@ -58,7 +72,8 @@ class ScreenState extends State<Screen> {
 
   @override
   void dispose() {
-    _subscription.cancel();
+    _scaffoldKeys.removeLast();
+    if (_scaffoldKeys.length == 0) _subscription?.cancel();
     super.dispose();
   }
 }
