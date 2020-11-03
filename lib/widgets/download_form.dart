@@ -13,8 +13,9 @@ class _DownloadInfo {
 
 class DownloadForm extends StatefulWidget {
   final DownloadType initialDownloadType;
+  final void Function() onSubmit;
 
-  DownloadForm({this.initialDownloadType = DownloadType.VIDEO})
+  DownloadForm({this.initialDownloadType = DownloadType.VIDEO, this.onSubmit})
       : assert(initialDownloadType != null);
 
   @override
@@ -64,6 +65,7 @@ class DownloadFormState extends State<DownloadForm> {
       );
     }
     _download(context, _downloadInfo);
+    widget.onSubmit?.call();
   }
 
   @override
