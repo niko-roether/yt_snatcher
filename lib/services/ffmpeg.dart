@@ -58,6 +58,7 @@ class FFmpeg {
     String codec,
     String vcodec,
     String acodec,
+    List<String> mappings,
     // will add more if necessary
   }) async {
     assert(overwrite != null);
@@ -67,10 +68,31 @@ class FFmpeg {
       "f": format,
       "c": codec,
       "c:v": vcodec,
-      "c:a": acodec
+      "c:a": acodec,
+      "map": mappings
     };
     var code = await _ffmpeg.executeWithArguments(_createCommand(args, output));
     _evaluateErrorCode(code);
     return output;
+  }
+
+  Future<File> mergeVideoAndAudio(
+    File video,
+    File audio,
+    File output, {
+    overwrite = false,
+    String vcodec = "copy",
+    String acodec = "aac",
+    String format = "mp4",
+  }) {
+    return run(
+      [video, audio],
+      output,
+      overwrite: overwrite,
+      vcodec: vcodec,
+      acodec: acodec,
+      format: format,
+      mappings: ["0:v:0", "1:a:0"],
+    );
   }
 }
