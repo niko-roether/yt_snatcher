@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_conditional_rendering/conditional.dart';
 import 'package:yt_snatcher/screens/settings/settings_screen.dart';
 import 'package:yt_snatcher/widgets/provider/error_provider.dart';
+import 'package:yt_snatcher/widgets/provider/orientation_provider.dart';
 
 class Screen extends StatefulWidget {
   final Widget title;
@@ -50,27 +51,29 @@ class ScreenState extends State<Screen> {
       _subscription =
           ErrorProvider.of(context).stream.listen((e) => onError(e, theme));
     }
-    return Scaffold(
-      key: key,
-      appBar: widget.showAppBar
-          ? AppBar(title: widget.title, actions: [
-              Conditional.single(
-                context: context,
-                conditionBuilder: (context) => widget.showSettings,
-                widgetBuilder: (context) => (IconButton(
-                  icon: Icon(Icons.settings),
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    SettingsScreen.ROUTENAME,
-                  ),
-                )),
-                fallbackBuilder: (context) => Container(),
-              ),
-            ])
-          : null,
-      body: widget.content,
-      bottomNavigationBar: widget.navigationBar,
-      floatingActionButton: widget.fab,
+    return OrientationProviderManager(
+      child: Scaffold(
+        key: key,
+        appBar: widget.showAppBar
+            ? AppBar(title: widget.title, actions: [
+                Conditional.single(
+                  context: context,
+                  conditionBuilder: (context) => widget.showSettings,
+                  widgetBuilder: (context) => (IconButton(
+                    icon: Icon(Icons.settings),
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      SettingsScreen.ROUTENAME,
+                    ),
+                  )),
+                  fallbackBuilder: (context) => Container(),
+                ),
+              ])
+            : null,
+        body: widget.content,
+        bottomNavigationBar: widget.navigationBar,
+        floatingActionButton: widget.fab,
+      ),
     );
   }
 

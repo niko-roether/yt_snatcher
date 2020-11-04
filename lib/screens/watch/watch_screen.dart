@@ -4,22 +4,19 @@ import 'package:yt_snatcher/widgets/download_player.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
 import 'package:yt_snatcher/widgets/video_info_view.dart';
 
-class PlayScreen extends StatelessWidget {
-  static const ROUTENAME = "/play";
+class WatchScreen extends StatelessWidget {
+  static const ROUTENAME = "/watch";
 
   @override
   Widget build(BuildContext context) {
     Download dl = ModalRoute.of(context).settings.arguments;
-    // return OrientationBuilder(builder: (context, orientation) {
-    //   var fullscreen = orientation == Orientation.landscape;
     Widget content;
-    if (dl == null) content = Center(child: Text("No video found"));
+    if (dl == null || dl.meta.type == DownloadType.MUSIC)
+      content = Center(child: Text("No video found"));
     content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        DownloadPlayer(
-          download: dl, /*defaultFullscreen: fullscreen*/
-        ),
+        DownloadPlayer(downloads: [dl, dl, dl]),
         VideoInfoView(dl.meta.videoMeta),
         // TODO playlists, recommendations, ...
       ],
@@ -28,9 +25,7 @@ class PlayScreen extends StatelessWidget {
       title: Text(
         dl.meta.type == DownloadType.VIDEO ? "Watch Video" : "Listen to Music",
       ),
-      // showAppBar: !fullscreen,
       content: content,
     );
-    // });
   }
 }
