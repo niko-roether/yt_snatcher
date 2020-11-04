@@ -6,7 +6,7 @@ import 'package:yt_snatcher/widgets/provider/error_provider.dart';
 class ServiceProvider extends StatelessWidget {
   final Widget child;
 
-  ServiceProvider({@required this.child});
+  ServiceProvider({@required this.child}) : assert(child != null);
 
   @override
   Widget build(BuildContext context) {

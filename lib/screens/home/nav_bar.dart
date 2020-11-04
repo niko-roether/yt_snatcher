@@ -4,7 +4,8 @@ class NavBar extends StatelessWidget {
   final int currentIndex;
   final void Function(int index) onTap;
 
-  NavBar({this.currentIndex, this.onTap});
+  NavBar({@required this.currentIndex, this.onTap})
+      : assert(currentIndex != null);
 
   @override
   Widget build(BuildContext context) {

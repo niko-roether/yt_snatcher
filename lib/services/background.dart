@@ -14,7 +14,7 @@ class MalformedTaskReturnError extends Error {
 class TaskReturnTypeError extends TypeError {
   final Type type;
 
-  TaskReturnTypeError(this.type);
+  TaskReturnTypeError(this.type) : assert(type != null);
 
   @override
   String toString() => "Task returned data of invalid type $type";
@@ -38,7 +38,9 @@ class TaskReturn<T> {
   final T data;
   final String eventName;
 
-  TaskReturn(this.type, this.data, [this.eventName]);
+  TaskReturn(this.type, this.data, [this.eventName])
+      : assert(type != null),
+        assert(data != null);
 }
 
 enum TaskState { DORMANT, RUNNING }
@@ -55,6 +57,7 @@ class Task<A, R> {
   Future<void> get completed => _completer?.future;
 
   static Future<T> getArg<T>(SendPort mainSendPort) {
+    assert(mainSendPort != null);
     final isolateRecievePort = ReceivePort();
     mainSendPort.send(isolateRecievePort.sendPort);
     final completer = Completer<dynamic>();
@@ -63,14 +66,18 @@ class Task<A, R> {
   }
 
   static void event(dynamic value, SendPort port, [String name]) {
+    assert(port != null);
     port.send(TaskReturn(TaskReturnType.EVENT, value, name));
   }
 
   static void end<T>(T value, SendPort port) {
+    assert(port != null);
     port.send(TaskReturn<T>(TaskReturnType.END, value, "return"));
   }
 
-  Task(this._process, [this.name = "Unnamed Task"]);
+  Task(this._process, [this.name = "Unnamed Task"])
+      : assert(_process != null),
+        assert(name != null);
 
   void _log(String message) => print("[$name] $message");
 
@@ -167,7 +174,10 @@ class TaskPool<A, R> {
     void Function(SendPort) process,
     this.size, [
     this.name = "Task Pool",
-  ]) : _tasks = List.generate(
+  ])  : assert(process != null),
+        assert(size != null),
+        assert(name != null),
+        _tasks = List.generate(
           size,
           (i) => Task(process, "$name Worker #$i"),
         );

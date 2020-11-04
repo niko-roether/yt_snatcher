@@ -8,7 +8,7 @@ import 'package:yt_snatcher/widgets/provider/download_provider.dart';
 
 class DownloadsDisplay extends StatefulWidget {
   final FutureOr<DownloadSet> Function(DownloadManager dlm) selector;
-  DownloadsDisplay({@required this.selector});
+  DownloadsDisplay({@required this.selector}) : assert(selector != null);
 
   @override
   State<StatefulWidget> createState() {

@@ -44,7 +44,10 @@ abstract class _DownloadInstructions {
 
   yt.VideoMeta getMeta() => yt.VideoMeta.fromJson(metaJson);
 
-  _DownloadInstructions(this.name, this.metaJson, this.localPath);
+  _DownloadInstructions(this.name, this.metaJson, this.localPath)
+      : assert(name != null),
+        assert(metaJson != null),
+        assert(localPath != null);
 }
 
 class _VideoDownloadInstructions extends _DownloadInstructions {
@@ -61,7 +64,11 @@ class _VideoDownloadInstructions extends _DownloadInstructions {
     @required this.videoContainer,
     @required this.audioCodec,
     @required String localPath,
-  }) : super(name, metaJson, localPath);
+  })  : assert(video != null),
+        assert(audio != null),
+        assert(videoContainer != null),
+        assert(audioCodec != null),
+        super(name, metaJson, localPath);
 }
 
 class _AudioDownloadInstructions extends _DownloadInstructions {
@@ -74,7 +81,9 @@ class _AudioDownloadInstructions extends _DownloadInstructions {
     @required this.media,
     @required this.codec,
     @required String localPath,
-  }) : super(name, metaJson, localPath);
+  })  : assert(media != null),
+        assert(codec != null),
+        super(name, metaJson, localPath);
 }
 
 Stream<List<int>> _monitoredStream(
@@ -243,6 +252,11 @@ class Downloader {
     @required DownloadType type,
     @required fs.FileManager fileManager,
   }) async {
+    assert(path != null);
+    assert(mediaFilename != null);
+    assert(meta != null);
+    assert(type != null);
+    assert(fileManager != null);
     var filename = _metaFileName(meta.id);
     var dlMeta = DownloadMeta(
       videoMeta: meta,

@@ -29,7 +29,13 @@ class DownloadMeta {
     DateTime watchDate,
     this.title,
     this.complete = true,
-  })  : this.downloadDate = downloadDate ?? DateTime.now(),
+  })  : assert(videoMeta != null),
+        assert(id != null),
+        assert(filename != null),
+        assert(metaFile != null),
+        assert(type != null),
+        assert(complete != null),
+        this.downloadDate = downloadDate ?? DateTime.now(),
         this.watchDate = watchDate ?? DateTime.now();
 
   String get displayTitle => title ?? videoMeta.title;
@@ -58,6 +64,8 @@ class DownloadMeta {
   }
 
   factory DownloadMeta.fromJson(String json, File file) {
+    assert(json != null);
+    assert(file != null);
     var data = jsonDecode(json);
     return DownloadMeta(
         videoMeta: data["videoMeta"] != null
@@ -117,11 +125,15 @@ abstract class DownloadSet {
   final List<DownloadMeta> _meta;
   final String _mediaPath;
 
-  DownloadSet(this._mediaPath, this._meta, this._fileManager);
+  DownloadSet(this._mediaPath, this._meta, this._fileManager)
+      : assert(_mediaPath != null),
+        assert(_meta != null),
+        assert(_fileManager != null);
 
   List<String> get ids => _meta.map((e) => e.id).toList();
 
   Future<Download> getDownload(String id) async {
+    assert(id != null);
     var meta = _meta.firstWhere((e) => e.id == id);
     if (meta == null) throw UnknownDownloadException(id);
     var media = await _getMedia(meta.filename);
@@ -129,7 +141,10 @@ abstract class DownloadSet {
   }
 
   bool _validateDownload(Download d) {
-    return d.mediaFile != null && d.meta != null && d.meta.videoMeta != null;
+    return d != null &&
+        d.mediaFile != null &&
+        d.meta != null &&
+        d.meta.videoMeta != null;
   }
 
   Future<List<Download>> getDownloads() async {
@@ -181,6 +196,7 @@ class DownloadManager {
   }
 
   Future<VideoDownloadSet> getVideos({bool completeOnly = true}) async {
+    assert(completeOnly != null);
     return VideoDownloadSet(
       await _getMetaData(
         fs.FileManager.VIDEO_META_PATH,
@@ -191,6 +207,7 @@ class DownloadManager {
   }
 
   Future<MusicDownloadSet> getMusic({bool completeOnly = true}) async {
+    assert(completeOnly != null);
     return MusicDownloadSet(
       await _getMetaData(
         fs.FileManager.MUSIC_META_PATH,
