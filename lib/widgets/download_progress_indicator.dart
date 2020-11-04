@@ -16,18 +16,19 @@ class DownloadProgressIndicator extends StatelessWidget {
   final Widget trailing;
   final void Function() onCancel;
 
-  DownloadProgressIndicator(
-      {@required this.title,
-      this.subtitle,
-      @required this.progress,
-      this.stage = "Loading",
-      this.thumbnailUrl,
-      this.thumbnailWidth = 100,
-      this.semanticName = "content",
-      this.bgColor,
-      this.barColor,
-      this.trailing,
-      this.onCancel});
+  DownloadProgressIndicator({
+    @required this.title,
+    this.subtitle,
+    @required this.progress,
+    this.stage = "Loading",
+    this.thumbnailUrl,
+    this.thumbnailWidth = 100,
+    this.semanticName = "content",
+    this.bgColor,
+    this.barColor,
+    this.trailing,
+    this.onCancel,
+  });
 
   String get _percent {
     if (progress == null) return "";
