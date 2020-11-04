@@ -24,12 +24,14 @@ class OngoingDownload {
   final Future<VideoMeta> _metaFuture;
   VideoMeta _meta;
   final dlm.DownloadType type;
+  final void Function(OngoingDownload dl) onCancel;
 
   OngoingDownload(
     FutureOr<VideoMeta> meta,
     FutureOr<MediaDownloader> downloader,
-    this.type,
-  )   : _downloaderFuture = Future.value(downloader),
+    this.type, {
+    this.onCancel,
+  })  : _downloaderFuture = Future.value(downloader),
         _metaFuture = Future.value(meta) {
     _downloaderFuture.then((dl) => _downloader = dl);
     _metaFuture.then((mt) => _meta = mt);
@@ -39,6 +41,11 @@ class OngoingDownload {
   VideoMeta get meta => _meta;
 
   Future<dlm.Download> start() async => (await _downloaderFuture).download();
+
+  Future<void> cancel() async {
+    (await _downloaderFuture).process.cancel();
+    onCancel?.call(this);
+  }
 }
 
 class DownloadService extends InheritedWidget {
@@ -81,6 +88,7 @@ class DownloadService extends InheritedWidget {
       dlsetFuture.then((dlset) => dlset.video),
       dlsetFuture.then((dlset) => selector?.call(dlset) ?? dlset.best()),
       type,
+      onCancel: (dl) => remove(dl),
     );
     add(process);
     var dlset = await dlsetFuture;
