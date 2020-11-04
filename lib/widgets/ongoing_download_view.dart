@@ -1,44 +1,43 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:yt_snatcher/services/youtube-dl.dart';
-import 'package:yt_snatcher/services/youtube.dart';
 import 'package:yt_snatcher/widgets/download_progress_indicator.dart';
+import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
-class MediaDownloaderView extends StatefulWidget {
-  final MediaDownloader downloader;
-  final VideoMeta meta;
+class OngoingDownloadView extends StatefulWidget {
+  final OngoingDownload ongoingDownload;
   final bool pending;
 
-  MediaDownloaderView({
-    @required this.downloader,
-    @required this.meta,
+  OngoingDownloadView({
+    @required this.ongoingDownload,
     this.pending = false,
   });
 
   @override
   State<StatefulWidget> createState() {
-    return MediaDownloaderViewState();
+    return OngoingDownloadViewState();
   }
 }
 
-class MediaDownloaderViewState extends State<MediaDownloaderView> {
+class OngoingDownloadViewState extends State<OngoingDownloadView> {
   double _progress;
   String _stage = "Preparing";
   StreamSubscription _subscription;
 
   @override
   initState() {
-    _progress = widget.downloader.progress;
-    _stage = widget.downloader.stage;
+    _progress = widget.ongoingDownload.downloader.progress;
+    _stage = widget.ongoingDownload.downloader.stage;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.downloader != null) {
+    final downloader = widget.ongoingDownload.downloader;
+    final meta = widget.ongoingDownload.meta;
+    if (downloader != null) {
       _subscription?.cancel();
-      _subscription = widget.downloader.progressStream.listen(
+      _subscription = downloader.progressStream.listen(
         (event) => setState(() {
           _progress = event.progress;
           _stage = event.stage;
@@ -47,14 +46,14 @@ class MediaDownloaderViewState extends State<MediaDownloaderView> {
     }
     return Padding(
       child: DownloadProgressIndicator(
-        title: widget.meta?.title ?? "Loading...",
-        subtitle: widget.meta?.channelName ?? "",
+        title: meta?.title ?? "Loading...",
+        subtitle: meta?.channelName ?? "",
         progress: widget.pending ? null : _progress,
         stage: widget.pending ? "Pending" : _stage,
-        thumbnailUrl: widget.meta?.thumbnails?.lowRes ?? null,
-        semanticName: widget.meta?.title ?? "content",
+        thumbnailUrl: meta?.thumbnails?.lowRes ?? null,
+        semanticName: meta?.title ?? "content",
         bgColor: widget.pending ? Colors.grey : null,
-        onCancel: () => widget.downloader.process?.cancel(),
+        onCancel: () => widget.ongoingDownload.cancel(),
       ),
       padding: EdgeInsets.all(4),
     );
