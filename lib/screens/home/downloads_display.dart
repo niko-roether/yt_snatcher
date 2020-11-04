@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:yt_snatcher/screens/watch/play_screen.dart';
+import 'package:yt_snatcher/screens/play/play_screen.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/download_view.dart';
 import 'package:yt_snatcher/widgets/provider/download_provider.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/youtube.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
-import 'package:yt_snatcher/widgets/yt_video_info.dart';
+import 'package:yt_snatcher/widgets/video_info_view.dart';
 
 class VideoInfoScreen extends StatelessWidget {
   static const ROUTENAME = "/videoInfo";
@@ -11,7 +11,7 @@ class VideoInfoScreen extends StatelessWidget {
     VideoMeta video = ModalRoute.of(context).settings.arguments;
     return Screen(
       title: Text("Video Information"),
-      content: YTVideoInfo(video),
+      content: VideoInfoView(video),
       showSettings: false,
     );
   }
