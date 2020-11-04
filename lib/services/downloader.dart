@@ -231,13 +231,11 @@ class Downloader {
       filename,
     );
 
-    await _ffmpeg.run(
-      [videoFile, audioFile],
+    await _ffmpeg.mergeVideoAndAudio(
+      videoFile,
+      audioFile,
       mergedFile,
       overwrite: true,
-      vcodec: "copy",
-      acodec: "aac",
-      format: "mp4",
     );
     videoFile.delete();
     audioFile.delete();
