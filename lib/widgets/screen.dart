@@ -11,6 +11,7 @@ class Screen extends StatefulWidget {
   final bool showSettings;
   final Widget navigationBar;
   final Widget fab;
+  final bool showAppBar;
 
   Screen({
     @required this.title,
@@ -18,6 +19,7 @@ class Screen extends StatefulWidget {
     this.navigationBar,
     this.showSettings = true,
     this.fab,
+    this.showAppBar = true,
   });
 
   @override
@@ -50,20 +52,22 @@ class ScreenState extends State<Screen> {
     }
     return Scaffold(
       key: key,
-      appBar: AppBar(title: widget.title, actions: [
-        Conditional.single(
-          context: context,
-          conditionBuilder: (context) => widget.showSettings,
-          widgetBuilder: (context) => (IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () => Navigator.pushNamed(
-              context,
-              SettingsScreen.ROUTENAME,
-            ),
-          )),
-          fallbackBuilder: (context) => Container(),
-        ),
-      ]),
+      appBar: widget.showAppBar
+          ? AppBar(title: widget.title, actions: [
+              Conditional.single(
+                context: context,
+                conditionBuilder: (context) => widget.showSettings,
+                widgetBuilder: (context) => (IconButton(
+                  icon: Icon(Icons.settings),
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    SettingsScreen.ROUTENAME,
+                  ),
+                )),
+                fallbackBuilder: (context) => Container(),
+              ),
+            ])
+          : null,
       body: widget.content,
       bottomNavigationBar: widget.navigationBar,
       floatingActionButton: widget.fab,
