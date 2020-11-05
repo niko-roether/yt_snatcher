@@ -68,7 +68,7 @@ class FFmpeg {
       "c:v": vcodec,
       "c:a": acodec,
       "map": mappings,
-      "hide_bannder": "",
+      "hide_banner": "",
     };
     var code = await _ffmpeg.executeWithArguments(_createCommand(args, output));
     _evaluateErrorCode(code);
