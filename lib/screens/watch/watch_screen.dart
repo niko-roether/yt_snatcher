@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
-import 'package:yt_snatcher/widgets/download_player.dart';
+import 'package:yt_snatcher/screens/watch/download_player.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
 import 'package:yt_snatcher/widgets/video_info_view.dart';
 
@@ -16,7 +16,7 @@ class WatchScreen extends StatelessWidget {
     content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        DownloadPlayer(downloads: [dl, dl, dl]),
+        DownloadPlayer.single(download: dl),
         SingleChildScrollView(child: VideoInfoView(dl.meta.videoMeta)),
         // TODO playlists, recommendations, ...
       ],
