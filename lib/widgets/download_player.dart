@@ -49,9 +49,10 @@ class DownloadPlayerState extends State<DownloadPlayer> {
   BetterPlayerController _controller;
   List<BetterPlayerDataSource> _dataSources;
   int _index;
+  bool _keepFullscreen = true;
 
   void _playerEvent(BetterPlayerEventType type, Map<String, dynamic> args) {
-    if (type == BetterPlayerEventType.CHANGED_TRACK) {
+    if (type == BetterPlayerEventType.HIDE_FULLSCREEN) {
       print(args);
     }
   }
@@ -69,6 +70,12 @@ class DownloadPlayerState extends State<DownloadPlayer> {
           fullScreenByDefault: widget.defaultFullscreen,
           fit: BoxFit.contain,
           autoPlay: true,
+          deviceOrientationsOnFullScreen: [
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+          ],
           controlsConfiguration: BetterPlayerControlsConfiguration(
             overflowMenuIconsColor: Color(0xffffffff),
             enableOverflowMenu: false,
@@ -84,17 +91,19 @@ class DownloadPlayerState extends State<DownloadPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<OrientationProvider>(
-      builder: (context, provider, child) {
-        bool fullscreen = provider.orientation == Orientation.landscape;
-        if (fullscreen) {
-          Timer.run(() => _controller.toggleFullScreen());
-        }
-        return child;
-      },
-      child: BetterPlayer(
-        controller: _controller,
-      ),
+    final orientation = MediaQuery.of(context).orientation;
+    if (orientation == Orientation.landscape && !_controller.isFullScreen) {
+      _keepFullscreen = false;
+      Timer.run(() => _controller.enterFullScreen());
+    } else if (orientation == Orientation.portrait &&
+        _controller.isFullScreen) {
+      if (!_keepFullscreen) {
+        Timer.run(() => _controller.exitFullScreen());
+      }
+      _keepFullscreen = true;
+    }
+    return BetterPlayer(
+      controller: _controller,
     );
   }
 }
