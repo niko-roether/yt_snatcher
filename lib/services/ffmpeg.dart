@@ -22,8 +22,6 @@ class FFmpegException extends Error {
 }
 
 class FFmpeg {
-  // Taken straight from youtube-dl. Might adjust further if I find the time
-  static const FFMPEG_MERGING_ARGS = ["-vcodec", "copy", "-y"];
   static final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
 
   static void _evaluateErrorCode(int errcode) {
@@ -69,13 +67,15 @@ class FFmpeg {
       "c": codec,
       "c:v": vcodec,
       "c:a": acodec,
-      "map": mappings
+      "map": mappings,
+      "hide_bannder": "",
     };
     var code = await _ffmpeg.executeWithArguments(_createCommand(args, output));
     _evaluateErrorCode(code);
     return output;
   }
 
+  // TODO fix codec incompatibilities
   Future<File> mergeVideoAndAudio(
     File video,
     File audio,
@@ -83,7 +83,7 @@ class FFmpeg {
     overwrite = false,
     String vcodec = "copy",
     String acodec = "aac",
-    String format = "mp4",
+    String format = "matroska",
   }) {
     return run(
       [video, audio],
@@ -94,5 +94,9 @@ class FFmpeg {
       format: format,
       mappings: ["0:v:0", "1:a:0"],
     );
+  }
+
+  void cancelAll() {
+    _ffmpeg.cancel();
   }
 }
