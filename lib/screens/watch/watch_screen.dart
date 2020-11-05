@@ -17,7 +17,7 @@ class WatchScreen extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         DownloadPlayer(downloads: [dl, dl, dl]),
-        VideoInfoView(dl.meta.videoMeta),
+        SingleChildScrollView(child: VideoInfoView(dl.meta.videoMeta)),
         // TODO playlists, recommendations, ...
       ],
     );
