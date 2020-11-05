@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_conditional_rendering/conditional.dart';
 
-import '../util.dart';
+import '../../util.dart';
 
 class DownloadProgressIndicator extends StatelessWidget {
   final String title;

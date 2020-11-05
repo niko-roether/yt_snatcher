@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:yt_snatcher/widgets/download_progress_indicator.dart';
+import 'package:yt_snatcher/screens/home/download_progress_indicator.dart';
 import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
 class OngoingDownloadView extends StatefulWidget {

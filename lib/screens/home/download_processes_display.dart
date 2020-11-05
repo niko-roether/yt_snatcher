@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/widgets/consumer.dart';
-import 'package:yt_snatcher/widgets/ongoing_download_view.dart';
+import 'package:yt_snatcher/screens/home/ongoing_download_view.dart';
 import 'package:yt_snatcher/widgets/provider/download_process_manager.dart';
 
 class DownloadProcessesDisplay extends StatelessWidget {
