@@ -41,11 +41,11 @@ class DownloadPlayer extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DownloadPlayerState();
+    return _DownloadPlayerState();
   }
 }
 
-class DownloadPlayerState extends State<DownloadPlayer> {
+class _DownloadPlayerState extends State<DownloadPlayer> {
   BetterPlayerController _controller;
   List<BetterPlayerDataSource> _dataSources;
   int _index;

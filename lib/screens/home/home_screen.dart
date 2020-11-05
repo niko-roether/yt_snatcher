@@ -12,11 +12,11 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() {
-    return HomeScreenState();
+    return _HomeScreenState();
   }
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   int _pageIndex = 0;
   static final _pages = [Home(), Videos(), Music(), Downloads()];
 

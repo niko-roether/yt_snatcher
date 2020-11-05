@@ -15,11 +15,11 @@ class OngoingDownloadView extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return OngoingDownloadViewState();
+    return _OngoingDownloadViewState();
   }
 }
 
-class OngoingDownloadViewState extends State<OngoingDownloadView> {
+class _OngoingDownloadViewState extends State<OngoingDownloadView> {
   double _progress;
   String _stage = "Preparing";
   StreamSubscription _subscription;

@@ -28,15 +28,15 @@ class ErrorProviderManager extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return ErrorProviderManagerState();
+    return _ErrorProviderManagerState();
   }
 }
 
-class ErrorProviderManagerState extends State<ErrorProviderManager> {
+class _ErrorProviderManagerState extends State<ErrorProviderManager> {
   final _controller = StreamController<Object>();
   Stream<Object> _stream;
 
-  ErrorProviderManagerState() {
+  _ErrorProviderManagerState() {
     _stream = _controller.stream.asBroadcastStream();
   }
 
