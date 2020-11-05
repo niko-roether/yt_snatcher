@@ -12,11 +12,11 @@ class DownloadsDisplay extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DownloadsDisplayState();
+    return _DownloadsDisplayState();
   }
 }
 
-class DownloadsDisplayState extends State<DownloadsDisplay> {
+class _DownloadsDisplayState extends State<DownloadsDisplay> {
   DownloadManager _dlm;
   List<Download> _downloads;
   StreamSubscription<List<Download>> _refreshStreamSubscription;

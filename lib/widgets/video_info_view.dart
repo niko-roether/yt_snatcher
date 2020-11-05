@@ -10,16 +10,16 @@ class VideoInfoView extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return VideoInfoViewState();
+    return _VideoInfoViewState();
   }
 }
 
-class VideoInfoViewState extends State<VideoInfoView>
+class _VideoInfoViewState extends State<VideoInfoView>
     with SingleTickerProviderStateMixin {
   static AnimationController _dropdownAnim;
   bool _showDescription = false;
 
-  VideoInfoViewState() {
+  _VideoInfoViewState() {
     _dropdownAnim = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 100),

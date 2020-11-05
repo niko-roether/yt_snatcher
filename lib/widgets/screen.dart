@@ -25,11 +25,11 @@ class Screen extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return ScreenState();
+    return _ScreenState();
   }
 }
 
-class ScreenState extends State<Screen> {
+class _ScreenState extends State<Screen> {
   static final List<GlobalKey<ScaffoldState>> _scaffoldKeys = [];
   static StreamSubscription _subscription;
 

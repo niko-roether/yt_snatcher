@@ -148,11 +148,11 @@ class DownloadProcessManager extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DownloadProcessManagerState();
+    return _DownloadProcessManagerState();
   }
 }
 
-class DownloadProcessManagerState extends State<DownloadProcessManager> {
+class _DownloadProcessManagerState extends State<DownloadProcessManager> {
   List<OngoingDownload> _processes = [];
 
   void _add(OngoingDownload process) => setState(() => _processes.add(process));

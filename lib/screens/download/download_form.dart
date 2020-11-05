@@ -19,10 +19,10 @@ class DownloadForm extends StatefulWidget {
       : assert(initialDownloadType != null);
 
   @override
-  State<StatefulWidget> createState() => DownloadFormState();
+  State<StatefulWidget> createState() => _DownloadFormState();
 }
 
-class DownloadFormState extends State<DownloadForm> {
+class _DownloadFormState extends State<DownloadForm> {
   final _formKey = GlobalKey<FormState>(debugLabel: "Download Form");
   var _downloadInfo = _DownloadInfo();
 

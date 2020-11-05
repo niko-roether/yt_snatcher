@@ -3,11 +3,7 @@ import 'dart:async';
 import 'package:better_player/better_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:yt_snatcher/screens/video_info/video_info_screen.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
-import 'package:yt_snatcher/widgets/provider/orientation_provider.dart';
-
-import '../../widgets/consumer.dart';
 
 class DownloadPlayer extends StatefulWidget {
   final List<Download> downloads;
@@ -41,11 +37,11 @@ class DownloadPlayer extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return DownloadPlayerState();
+    return _DownloadPlayerState();
   }
 }
 
-class DownloadPlayerState extends State<DownloadPlayer> {
+class _DownloadPlayerState extends State<DownloadPlayer> {
   BetterPlayerController _controller;
   List<BetterPlayerDataSource> _dataSources;
   int _index;
