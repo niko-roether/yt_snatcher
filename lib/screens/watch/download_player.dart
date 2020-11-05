@@ -3,11 +3,7 @@ import 'dart:async';
 import 'package:better_player/better_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:yt_snatcher/screens/video_info/video_info_screen.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
-import 'package:yt_snatcher/widgets/provider/orientation_provider.dart';
-
-import '../../widgets/consumer.dart';
 
 class DownloadPlayer extends StatefulWidget {
   final List<Download> downloads;
