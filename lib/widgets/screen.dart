@@ -42,15 +42,17 @@ class ScreenState extends State<Screen> {
     );
   }
 
+  void _initSubscription() {
+    final theme = Theme.of(context);
+    _subscription =
+        ErrorProvider.of(context).stream.listen((e) => onError(e, theme));
+  }
+
   @override
   Widget build(BuildContext context) {
     var key = GlobalKey<ScaffoldState>();
     _scaffoldKeys.add(key);
-    if (_subscription == null) {
-      var theme = Theme.of(context);
-      _subscription =
-          ErrorProvider.of(context).stream.listen((e) => onError(e, theme));
-    }
+    if (_subscription == null) _initSubscription();
     return OrientationProviderManager(
       child: Scaffold(
         key: key,
