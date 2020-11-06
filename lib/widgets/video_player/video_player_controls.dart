@@ -22,7 +22,8 @@ class VideoPlayerControls extends StatefulWidget {
 
 class VideoPlayerControlsState extends State<VideoPlayerControls>
     with SingleTickerProviderStateMixin {
-  static const _HIDE_DURATION = Duration(seconds: 3);
+  static const _HIDE_TIMEOUT = Duration(seconds: 3);
+  static const _SHOW_HIDE_DURATION = Duration(milliseconds: 100);
   AnimationController _showHideAnimation;
   bool _shown = false;
   bool _playing = false;
@@ -32,7 +33,7 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
   void initState() {
     _showHideAnimation = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 100),
+      duration: _SHOW_HIDE_DURATION,
     );
     widget.showControlsImmediately ? _show() : _hide();
     widget.controller.addListener(_onControllerUpdate);
@@ -67,7 +68,7 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
   }
 
   void _scheduleHide() {
-    _hideTimer = Timer(_HIDE_DURATION, () {
+    _hideTimer = Timer(_HIDE_TIMEOUT, () {
       if (_playing) setState(() => _hide());
     });
   }
@@ -109,6 +110,7 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
                 child: _VideoPlayerControlsBottomBar(
                   controller: widget.controller,
                   expanded: _shown,
+                  animationDuration: _SHOW_HIDE_DURATION,
                 ),
               ),
             ],
@@ -187,11 +189,13 @@ class _VideoPlayerControlsBottomBar extends StatefulWidget {
   final Color barColor;
   final bool expanded;
   final VlcPlayerController controller;
+  final Duration animationDuration;
 
   _VideoPlayerControlsBottomBar({
     @required this.controller,
     this.barColor,
     this.expanded = false,
+    this.animationDuration = const Duration(milliseconds: 100),
   }) : assert(expanded != null);
 
   @override
@@ -280,6 +284,7 @@ class _VideoPlayerControlsBottomBarState
           VideoProgressBar(
             progress: _getProgress(),
             draggable: widget.expanded,
+            animationDuration: widget.animationDuration,
           )
         ],
       ),
