@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player.dart';
 
 class DownloadPlayer extends StatelessWidget {
   final List<Download> downloads;
-  final int startAt;
+  final Duration startAt;
   final bool screenSleep;
   final bool defaultFullscreen;
+  final bool autoplay;
+  final void Function(VlcPlayerController controller) listener;
 
   DownloadPlayer({
     @required this.downloads,
-    this.startAt = 0,
+    this.startAt = Duration.zero,
     this.screenSleep = true,
     this.defaultFullscreen = false,
+    this.autoplay = true,
+    this.listener,
   })  : assert(downloads != null),
         assert(downloads.length > 0),
         assert(startAt != null),
-        assert(0 <= startAt && startAt <= downloads.length),
         assert(screenSleep != null),
         assert(defaultFullscreen != null);
 
@@ -24,11 +28,17 @@ class DownloadPlayer extends StatelessWidget {
     Download download,
     bool screenSleep = true,
     bool defaultFullscreen = false,
+    void Function(VlcPlayerController controller) listener,
+    Duration startAt = Duration.zero,
+    bool autoplay = true,
   }) {
     return DownloadPlayer(
       downloads: [download],
       screenSleep: screenSleep,
       defaultFullscreen: defaultFullscreen,
+      listener: listener,
+      startAt: startAt,
+      autoplay: autoplay,
     );
   }
 
@@ -37,7 +47,9 @@ class DownloadPlayer extends StatelessWidget {
     return VideoPlayer(
       url: downloads[0].mediaFile.path,
       type: VideoSourceType.FILE,
-      autoplay: true,
+      autoplay: autoplay,
+      listener: listener,
+      startAt: startAt,
     );
   }
 }
