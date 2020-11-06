@@ -123,6 +123,8 @@ class _VideoPlayerControlsBottomBarState
         IconButton(
           icon: Icon(Icons.fullscreen),
           onPressed: () => null,
+          visualDensity: VisualDensity.compact,
+          splashRadius: 8,
           padding: EdgeInsets.zero,
         ),
       ],
@@ -131,16 +133,22 @@ class _VideoPlayerControlsBottomBarState
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildUpperBar(),
-        VideoProgressBar(
-          progress: _getProgress(),
-          draggable: widget.expanded,
-          onDrag: (progress) => _onDrag(progress),
-        )
-      ],
+    final width = MediaQuery.of(context).size.width;
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragUpdate: (details) {
+        _onDrag(details.localPosition.dx / width);
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildUpperBar(),
+          VideoProgressBar(
+            progress: _getProgress(),
+            draggable: widget.expanded,
+          )
+        ],
+      ),
     );
   }
 }
