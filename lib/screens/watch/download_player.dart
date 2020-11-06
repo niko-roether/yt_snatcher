@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
-import 'package:yt_snatcher/widgets/video_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player.dart';
 
 class DownloadPlayer extends StatelessWidget {
   final List<Download> downloads;
@@ -37,6 +37,7 @@ class DownloadPlayer extends StatelessWidget {
     return VideoPlayer(
       url: downloads[0].mediaFile.path,
       type: VideoSourceType.FILE,
+      autoplay: true,
     );
   }
 }
