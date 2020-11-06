@@ -34,12 +34,14 @@ class _VideoPlayerState extends State<VideoPlayer> {
   Widget build(BuildContext context) {
     return Stack(children: [
       VlcPlayer(
-        aspectRatio: _ASPECT_RATIO,
-        controller: _controller,
-        url: widget.url,
-        isLocalMedia: widget.type == VideoSourceType.FILE,
-        placeholder: Center(child: CircularProgressIndicator()),
-      ),
+          aspectRatio: _ASPECT_RATIO,
+          controller: _controller,
+          url: widget.url,
+          isLocalMedia: widget.type == VideoSourceType.FILE,
+          placeholder: Container(
+            color: Color(0xff000000),
+            child: Center(child: CircularProgressIndicator()),
+          )),
       VideoPlayerControls(
         controller: _controller,
         aspectRatio: _ASPECT_RATIO,
