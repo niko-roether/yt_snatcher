@@ -16,6 +16,14 @@
 			"type": "dart",
 			"flutterMode": "release",
 			"console": "debugConsole"
+		},
+		{
+			"name": "profile",
+			"program": "lib/main.dart",
+			"request": "launch",
+			"type": "dart",
+			"flutterMode": "profile",
+			"console": "debugConsole"
 		}
 	]
 }
