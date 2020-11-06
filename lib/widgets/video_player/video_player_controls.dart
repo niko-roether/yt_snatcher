@@ -3,17 +3,21 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controls_bottom.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controls_center.dart';
 import 'package:yt_snatcher/widgets/video_player/video_progress_bar.dart';
 
 class VideoPlayerControls extends StatefulWidget {
   final VlcPlayerController controller;
   final double aspectRatio;
   final bool showControlsImmediately;
+  final bool fullscreen;
 
   VideoPlayerControls({
     @required this.controller,
     this.aspectRatio = 16 / 9,
     this.showControlsImmediately = true,
+    this.fullscreen = false,
   });
 
   @override
@@ -22,7 +26,7 @@ class VideoPlayerControls extends StatefulWidget {
 
 class VideoPlayerControlsState extends State<VideoPlayerControls>
     with SingleTickerProviderStateMixin {
-  static const _HIDE_TIMEOUT = Duration(seconds: 3);
+  static const _HIDE_TIMEOUT = Duration(seconds: 4);
   static const _SHOW_HIDE_DURATION = Duration(milliseconds: 100);
   AnimationController _showHideAnimation;
   bool _shown = false;
@@ -99,7 +103,7 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
             children: [
               Container(),
               Align(
-                child: _VideoPlayerControlsCenter(
+                child: VideoPlayerControlsCenter(
                   controller: widget.controller,
                   visible: _shown,
                 ),
@@ -107,209 +111,18 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
               ),
               Align(
                 alignment: Alignment.bottomCenter,
-                child: _VideoPlayerControlsBottomBar(
+                child: VideoPlayerControlsBottom(
                   controller: widget.controller,
                   expanded: _shown,
                   animationDuration: _SHOW_HIDE_DURATION,
+                  fullscreen: widget.fullscreen,
+                  onDragStart: () => _hideTimer?.cancel(),
+                  onDragEnd: () => _scheduleHide(),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _VideoPlayerControlsCenter extends StatefulWidget {
-  final VlcPlayerController controller;
-  final bool visible;
-
-  _VideoPlayerControlsCenter({@required this.controller, this.visible = true})
-      : assert(visible != null);
-
-  @override
-  State<StatefulWidget> createState() => _VideoPlayerControlsCenterState();
-}
-
-class _VideoPlayerControlsCenterState extends State<_VideoPlayerControlsCenter>
-    with SingleTickerProviderStateMixin {
-  VlcPlayerController _controller;
-  AnimationController _playPauseAnimation;
-  PlayingState _state;
-
-  @override
-  void initState() {
-    _controller = widget.controller;
-    _state = _controller.playingState ?? PlayingState.PAUSED;
-    _controller.addListener(_onControllerUpdate);
-    _playPauseAnimation =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 50));
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onControllerUpdate);
-    super.dispose();
-  }
-
-  void _onControllerUpdate() {
-    final newState = _controller.playingState;
-    if (newState != _state) setState(() => _state = newState);
-  }
-
-  Widget _buildPausePlayButton() {
-    return IconButton(
-      icon: AnimatedIcon(
-        icon: AnimatedIcons.pause_play,
-        progress: _playPauseAnimation,
-      ),
-      onPressed: () async {
-        if (await _controller.isPlaying())
-          _controller.pause();
-        else
-          _controller.play();
-      },
-      iconSize: 40,
-    );
-  }
-
-  Widget _buildError() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.error, size: 50),
-        Text("Video could not be played"),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!widget.visible) return Container();
-    var center;
-    if ([PlayingState.PLAYING, PlayingState.PAUSED, PlayingState.STOPPED]
-        .contains(_state)) {
-      center = _buildPausePlayButton();
-      if (_state == PlayingState.PLAYING)
-        _playPauseAnimation.animateTo(0);
-      else
-        _playPauseAnimation.animateTo(1);
-    } else if (_state == PlayingState.BUFFERING) {
-      center = CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation(Color(0xffffffff)),
-      );
-    } else {
-      center = _buildError();
-    }
-
-    return center;
-  }
-}
-
-class _VideoPlayerControlsBottomBar extends StatefulWidget {
-  final Color barColor;
-  final bool expanded;
-  final VlcPlayerController controller;
-  final Duration animationDuration;
-
-  _VideoPlayerControlsBottomBar({
-    @required this.controller,
-    this.barColor,
-    this.expanded = false,
-    this.animationDuration = const Duration(milliseconds: 100),
-  }) : assert(expanded != null);
-
-  @override
-  State<StatefulWidget> createState() => _VideoPlayerControlsBottomBarState();
-}
-
-class _VideoPlayerControlsBottomBarState
-    extends State<_VideoPlayerControlsBottomBar> {
-  VlcPlayerController _controller;
-  Duration _position;
-
-  @override
-  void initState() {
-    _controller = widget.controller;
-    _controller.addListener(_onControllerUpdate);
-    _position = _controller.position ?? Duration.zero;
-    super.initState();
-  }
-
-  @override
-  dispose() {
-    _controller.removeListener(_onControllerUpdate);
-    super.dispose();
-  }
-
-  double _getProgress() {
-    if (_controller.duration == Duration.zero) return 0;
-    return _position.inMilliseconds / _controller.duration.inMilliseconds;
-  }
-
-  String _stringifyDuration(Duration duration) {
-    if (duration == null) return "0:00";
-    int hours = duration.inHours.floor();
-    int minutes = duration.inMinutes.floor() % 60;
-    int seconds = duration.inSeconds.floor() % 60;
-    // just trust me on this one
-    return "${hours > 0 ? "$hours${minutes < 10 ? "0" : ""}:" : ""}$minutes:${seconds < 10 ? "0" : ""}$seconds";
-  }
-
-  void _onControllerUpdate() {
-    if (_controller.position != _position)
-      setState(() => _position = _controller.position);
-  }
-
-  void _onDrag(double progress) {
-    final newPos = _controller.duration * progress;
-    _controller.setTime(newPos.inMilliseconds);
-    setState(() => _position = newPos);
-  }
-
-  Widget _buildUpperBar() {
-    if (!widget.expanded) return Container();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Flexible(
-          child: Padding(
-            padding: EdgeInsets.only(left: 16),
-            child: Text(
-                "${_stringifyDuration(_position)} / ${_stringifyDuration(_controller.duration)}"),
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.fullscreen),
-          onPressed: () => null,
-          visualDensity: VisualDensity.compact,
-          splashRadius: 8,
-          padding: EdgeInsets.zero,
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onHorizontalDragUpdate: (details) {
-        _onDrag(details.localPosition.dx / width);
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildUpperBar(),
-          VideoProgressBar(
-            progress: _getProgress(),
-            draggable: widget.expanded,
-            animationDuration: widget.animationDuration,
-          )
-        ],
       ),
     );
   }
