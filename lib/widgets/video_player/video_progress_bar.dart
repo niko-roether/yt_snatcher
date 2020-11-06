@@ -79,8 +79,11 @@ class _VideoProgressBarPainter extends CustomPainter {
       ..strokeWidth = strokeWidth;
 
     paint.color = color;
-    final lineStart = Offset(0, strokeWidth / 2);
-    final lineEnd = Offset((progress ?? 0) * size.width, strokeWidth / 2);
+    final lineStart = Offset(0, size.height - strokeWidth / 2);
+    final lineEnd = Offset(
+      (progress ?? 0) * size.width,
+      size.height - strokeWidth / 2,
+    );
     canvas.drawLine(
       lineStart,
       lineEnd,
