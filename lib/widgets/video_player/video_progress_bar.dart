@@ -4,12 +4,15 @@ class VideoProgressBar extends StatefulWidget {
   final double progress;
   final bool draggable;
   final Duration animationDuration;
+  final bool hideWhenNotDraggable;
 
   VideoProgressBar({
     this.progress,
     this.draggable = false,
     this.animationDuration = const Duration(milliseconds: 100),
-  }) : assert(draggable != null);
+    this.hideWhenNotDraggable = false,
+  })  : assert(draggable != null),
+        assert(hideWhenNotDraggable != null);
 
   @override
   State<StatefulWidget> createState() => _VideoProgressBarState();
@@ -41,7 +44,7 @@ class _VideoProgressBarState extends State<VideoProgressBar>
       painter: _VideoProgressBarPainter(
         progress: widget.progress,
         color: Theme.of(context).colorScheme.primary,
-        normalBarWidth: _NORMAL_HEIGHT,
+        normalBarWidth: widget.hideWhenNotDraggable ? 0 : _NORMAL_HEIGHT,
         draggableBarWidth: _DRAGGABLE_HEIGHT,
         expand: _animationController,
       ),
@@ -74,26 +77,32 @@ class _VideoProgressBarPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final double strokeWidth =
         (draggableBarWidth - normalBarWidth) * expand.value + normalBarWidth;
+    if (strokeWidth == 0) return;
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
-
-    paint.color = color;
+    paint.color = Colors.white24;
     final lineStart = Offset(0, size.height - strokeWidth / 2);
-    final lineEnd = Offset(
+    final valueLineEnd = Offset(
       (progress ?? 0) * size.width,
       size.height - strokeWidth / 2,
     );
+    final bgLineEnd = Offset(size.width, size.height - strokeWidth / 2);
+
     canvas.drawLine(
       lineStart,
-      lineEnd,
+      bgLineEnd,
       paint,
     );
+
+    paint.color = color;
+    canvas.drawLine(lineStart, valueLineEnd, paint);
     if (expand.value == 0) return;
+
     final circlePaint = Paint()
       ..style = PaintingStyle.fill
       ..color = color;
-    canvas.drawCircle(lineEnd, circleRadius * expand.value, circlePaint);
+    canvas.drawCircle(valueLineEnd, circleRadius * expand.value, circlePaint);
   }
 
   @override
