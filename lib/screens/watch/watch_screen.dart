@@ -17,14 +17,14 @@ class WatchScreen extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         DownloadPlayer.single(download: dl),
-        SingleChildScrollView(child: VideoInfoView(dl.meta.videoMeta)),
+        Expanded(
+          child: SingleChildScrollView(child: VideoInfoView(dl.meta.videoMeta)),
+        ),
         // TODO playlists, recommendations, ...
       ],
     );
     return Screen(
-      title: Text(
-        dl.meta.type == DownloadType.VIDEO ? "Watch Video" : "Listen to Music",
-      ),
+      title: Text("Watch Video"),
       content: content,
     );
   }
