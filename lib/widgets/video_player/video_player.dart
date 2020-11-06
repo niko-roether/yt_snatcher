@@ -49,6 +49,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
       VideoPlayerControls(
         controller: _controller,
         aspectRatio: _ASPECT_RATIO,
+        showControlsImmediately: !widget.autoplay,
       ),
     ]);
   }
