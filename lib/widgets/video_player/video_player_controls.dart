@@ -132,9 +132,10 @@ class _VideoPlayerControlsCenter extends StatefulWidget {
   State<StatefulWidget> createState() => _VideoPlayerControlsCenterState();
 }
 
-class _VideoPlayerControlsCenterState
-    extends State<_VideoPlayerControlsCenter> {
+class _VideoPlayerControlsCenterState extends State<_VideoPlayerControlsCenter>
+    with SingleTickerProviderStateMixin {
   VlcPlayerController _controller;
+  AnimationController _playPauseAnimation;
   PlayingState _state;
 
   @override
@@ -142,6 +143,8 @@ class _VideoPlayerControlsCenterState
     _controller = widget.controller;
     _state = _controller.playingState ?? PlayingState.PAUSED;
     _controller.addListener(_onControllerUpdate);
+    _playPauseAnimation =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 50));
     super.initState();
   }
 
@@ -156,19 +159,29 @@ class _VideoPlayerControlsCenterState
     if (newState != _state) setState(() => _state = newState);
   }
 
-  Widget _buildPlayButton() {
+  Widget _buildPausePlayButton() {
     return IconButton(
-      icon: Icon(Icons.play_arrow),
-      onPressed: () => _controller.play(),
+      icon: AnimatedIcon(
+        icon: AnimatedIcons.pause_play,
+        progress: _playPauseAnimation,
+      ),
+      onPressed: () async {
+        if (await _controller.isPlaying())
+          _controller.pause();
+        else
+          _controller.play();
+      },
       iconSize: 40,
     );
   }
 
-  Widget _buildPauseButton() {
-    return IconButton(
-      icon: Icon(Icons.pause),
-      onPressed: () => _controller.pause(),
-      iconSize: 40,
+  Widget _buildError() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.error, size: 50),
+        Text("Video could not be played"),
+      ],
     );
   }
 
@@ -176,10 +189,20 @@ class _VideoPlayerControlsCenterState
   Widget build(BuildContext context) {
     if (!widget.visible) return Container();
     var center;
-    if ([PlayingState.PLAYING, PlayingState.BUFFERING].contains(_state))
-      center = _buildPauseButton();
-    else
-      center = _buildPlayButton();
+    if ([PlayingState.PLAYING, PlayingState.PAUSED, PlayingState.STOPPED]
+        .contains(_state)) {
+      center = _buildPausePlayButton();
+      if (_state == PlayingState.PLAYING)
+        _playPauseAnimation.animateTo(0);
+      else
+        _playPauseAnimation.animateTo(1);
+    } else if (_state == PlayingState.BUFFERING) {
+      center = CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation(Color(0xffffffff)),
+      );
+    } else {
+      center = _buildError();
+    }
 
     return center;
   }
