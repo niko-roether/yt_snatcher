@@ -42,7 +42,7 @@ class _VideoProgressBarPainter extends CustomPainter {
       ..strokeWidth = _draggable ? _DRAGGABLE_BAR_WIDTH : _NORMAL_BAR_WIDTH;
     paint.color = _color;
     final lineStart = Offset(0, size.height / 2);
-    final lineEnd = Offset(_progress * size.width, size.height / 2);
+    final lineEnd = Offset((_progress ?? 0) * size.width, size.height / 2);
     canvas.drawLine(
       lineStart,
       lineEnd,
