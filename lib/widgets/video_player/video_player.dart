@@ -9,9 +9,16 @@ class VideoPlayer extends StatefulWidget {
   final String url;
   final VideoSourceType type;
   final bool autoplay;
+  final Duration startAt;
+  final void Function(VlcPlayerController controller) listener;
 
-  VideoPlayer({@required this.url, @required this.type, this.autoplay = false})
-      : assert(type != null),
+  VideoPlayer({
+    @required this.url,
+    @required this.type,
+    this.autoplay = false,
+    this.listener,
+    this.startAt = Duration.zero,
+  })  : assert(type != null),
         assert(autoplay != null);
 
   @override
@@ -27,14 +34,30 @@ class _VideoPlayerState extends State<VideoPlayer> {
   _VideoPlayerState() {
     _controller = VlcPlayerController(onInit: () {
       if (widget.autoplay) _controller.play();
+      _controller.setTime(widget.startAt.inMilliseconds);
     });
+    _controller.addListener(_onControllerUpdate);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerUpdate);
+    super.dispose();
+  }
+
+  void _onControllerUpdate() async {
+    widget.listener?.call(_controller);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
+    final mediaQuery = MediaQuery.of(context);
+    final isFullscreen = mediaQuery.orientation == Orientation.landscape;
+    final deviceAspectRatio = mediaQuery.size.aspectRatio;
+    final aspectRatio = isFullscreen ? deviceAspectRatio : _ASPECT_RATIO;
+    final player = Stack(children: [
       VlcPlayer(
-        aspectRatio: _ASPECT_RATIO,
+        aspectRatio: aspectRatio,
         controller: _controller,
         url: widget.url,
         isLocalMedia: widget.type == VideoSourceType.FILE,
@@ -48,9 +71,11 @@ class _VideoPlayerState extends State<VideoPlayer> {
       ),
       VideoPlayerControls(
         controller: _controller,
-        aspectRatio: _ASPECT_RATIO,
+        aspectRatio: aspectRatio,
         showControlsImmediately: !widget.autoplay,
+        fullscreen: isFullscreen,
       ),
     ]);
+    return player;
   }
 }
