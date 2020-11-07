@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls.dart';
 
 enum VideoSourceType { FILE, NETWORK }
@@ -9,7 +10,7 @@ class VideoPlayer extends StatefulWidget {
   final VideoSourceType type;
   final bool autoplay;
   final Duration startAt;
-  final void Function(VlcPlayerController controller) listener;
+  final void Function(VideoPlayerController controller) listener;
   final void Function() onBack;
 
   VideoPlayer({
@@ -30,13 +31,17 @@ class VideoPlayer extends StatefulWidget {
 
 class _VideoPlayerState extends State<VideoPlayer> {
   static const double _ASPECT_RATIO = 16 / 9;
-  VlcPlayerController _controller;
+  VideoPlayerController _controller;
 
   _VideoPlayerState() {
-    _controller = VlcPlayerController(onInit: () {
+    final vlcController = VlcPlayerController(onInit: () {
       if (widget.autoplay) _controller.play();
-      _controller.setTime(widget.startAt.inMilliseconds);
+      _controller.setPosition(widget.startAt);
     });
+    _controller = VideoPlayerController(
+      vlcController: vlcController,
+      dragbarPosition: Duration.zero,
+    );
     _controller.addListener(_onControllerUpdate);
   }
 
@@ -59,7 +64,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     final player = Stack(children: [
       VlcPlayer(
         aspectRatio: aspectRatio,
-        controller: _controller,
+        controller: _controller.vlcController,
         url: widget.url,
         isLocalMedia: widget.type == VideoSourceType.FILE,
         placeholder: Container(

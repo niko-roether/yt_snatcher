@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 
 class VideoPlayerControlsCenter extends StatefulWidget {
-  final VlcPlayerController controller;
+  final VideoPlayerController controller;
   final bool visible;
 
   VideoPlayerControlsCenter({@required this.controller, this.visible = true})
@@ -14,13 +14,13 @@ class VideoPlayerControlsCenter extends StatefulWidget {
 
 class _VideoPlayerControlsCenterState extends State<VideoPlayerControlsCenter>
     with SingleTickerProviderStateMixin {
-  VlcPlayerController _controller;
   AnimationController _playPauseAnimation;
   PlayingState _state;
 
+  VideoPlayerController get _controller => widget.controller;
+
   @override
   void initState() {
-    _controller = widget.controller;
     _state = _controller.playingState ?? PlayingState.PAUSED;
     _controller.addListener(_onControllerUpdate);
     _playPauseAnimation =

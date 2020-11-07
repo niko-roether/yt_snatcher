@@ -1,13 +1,17 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 import 'package:yt_snatcher/widgets/video_player/video_progress_bar.dart';
 
 import '../../util.dart';
 
-class VideoPlayerControlsBottom extends StatefulWidget {
+class VideoPlayerControlsBottom extends StatelessWidget {
+  static const double BAR_PADDING_FULLSCREEN = 16;
+
   final Color barColor;
   final bool expanded;
-  final VlcPlayerController controller;
+  final VideoPlayerController controller;
   final Duration animationDuration;
   final bool fullscreen;
   final void Function() onDragStart;
@@ -23,95 +27,23 @@ class VideoPlayerControlsBottom extends StatefulWidget {
     this.onDragEnd,
   }) : assert(expanded != null);
 
-  @override
-  State<StatefulWidget> createState() => _VideoPlayerControlsBottomState();
-}
-
-class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
-  static const double _BAR_PADDING_FULLSCREEN = 16;
-  VlcPlayerController _controller;
-  Duration _position;
-  bool _dragging = false;
-
-  @override
-  void initState() {
-    _controller = widget.controller;
-    _controller.addListener(_onControllerUpdate);
-    _position = _controller.position ?? Duration.zero;
-    super.initState();
-  }
-
-  @override
-  dispose() {
-    _controller.removeListener(_onControllerUpdate);
-    super.dispose();
-  }
-
-  double _getProgress() {
-    if (_controller.duration == Duration.zero) return 0;
-    return _position.inMilliseconds / _controller.duration.inMilliseconds;
-  }
-
-  String _stringifyDuration(Duration duration) {
-    if (duration == null) return "0:00";
-    int hours = duration.inHours.floor();
-    int minutes = duration.inMinutes.floor() % 60;
-    int seconds = duration.inSeconds.floor() % 60;
-    // just trust me on this one
-    // uses one of the following formats as they fit:
-    // hh:mm:ss
-    // mm:ss
-    // m:ss
-    return "${hours > 0 ? "$hours${minutes < 10 ? "0" : ""}:" : ""}$minutes:${seconds < 10 ? "0" : ""}$seconds";
-  }
-
-  void _onControllerUpdate() {
-    if (!_dragging && _controller.position.inSeconds != _position.inSeconds)
-      setState(() => _position = _controller.position);
-  }
-
   void _onDrag(DragUpdateDetails details, double width) async {
-    final padding = widget.fullscreen ? _BAR_PADDING_FULLSCREEN : 0;
+    final padding = fullscreen ? BAR_PADDING_FULLSCREEN : 0;
     final progress = numInRange(
         (details.localPosition.dx - padding) / (width - 2 * padding), 0, 1);
 
-    final newPos = _controller.duration * progress;
-    if (newPos.inMilliseconds != _position.inMilliseconds)
-      setState(() => _position = newPos);
+    final newPos = controller.duration * progress;
+    if (newPos.inMilliseconds != controller.dragbarPosition.inMilliseconds)
+      controller.setDragbarPosition(newPos);
   }
 
   void _onDragStart() {
-    _dragging = true;
-    widget.onDragStart?.call();
+    onDragStart?.call();
   }
 
   void _onDragEnd() {
-    _dragging = false;
-    _controller.setTime(_position.inMilliseconds);
-    widget.onDragEnd?.call();
-  }
-
-  Widget _buildUpperBar() {
-    if (!widget.expanded) return Container();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Flexible(
-          child: Padding(
-            padding: EdgeInsets.only(left: 16),
-            child: Text(
-                "${_stringifyDuration(_position)} / ${_stringifyDuration(_controller.duration)}"),
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.fullscreen),
-          onPressed: () => null,
-          visualDensity: VisualDensity.compact,
-          splashRadius: 8,
-          padding: EdgeInsets.zero,
-        ),
-      ],
-    );
+    controller.setPosition(controller.dragbarPosition);
+    onDragEnd?.call();
   }
 
   @override
@@ -125,20 +57,72 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildUpperBar(),
+          _UpperBar(
+            controller: controller,
+            expanded: expanded,
+          ),
           Padding(
-            padding:
-                EdgeInsets.all(widget.fullscreen ? _BAR_PADDING_FULLSCREEN : 0)
-                    .copyWith(top: 0),
+            padding: EdgeInsets.all(fullscreen ? BAR_PADDING_FULLSCREEN : 0)
+                .copyWith(top: 0),
             child: VideoProgressBar(
-              progress: _getProgress(),
-              draggable: widget.expanded,
-              animationDuration: widget.animationDuration,
-              hideWhenNotDraggable: widget.fullscreen,
+              controller: controller,
+              draggable: expanded,
+              animationDuration: animationDuration,
+              hideWhenNotDraggable: fullscreen,
             ),
           )
         ],
       ),
+    );
+  }
+}
+
+class _UpperBar extends StatefulWidget {
+  final VideoPlayerController controller;
+  final bool expanded;
+
+  _UpperBar({@required this.controller, this.expanded = true});
+
+  @override
+  State<StatefulWidget> createState() => _UpperBarState();
+}
+
+class _UpperBarState extends State<_UpperBar> {
+  VideoPlayerController get _controller => widget.controller;
+  Duration _position;
+
+  @override
+  void initState() {
+    _controller.addListener(_onControllerUpdate);
+    super.initState();
+  }
+
+  void _onControllerUpdate() {
+    var newPos = _controller.position;
+    if (newPos.inSeconds != _position) setState(() => _position = newPos);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.expanded) return Container();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Padding(
+            padding: EdgeInsets.only(left: 16),
+            child: Text(
+                "${stringifyDuration(_position)} / ${stringifyDuration(_controller.duration)}"),
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.fullscreen),
+          onPressed: () => null,
+          visualDensity: VisualDensity.compact,
+          splashRadius: 8,
+          padding: EdgeInsets.zero,
+        ),
+      ],
     );
   }
 }

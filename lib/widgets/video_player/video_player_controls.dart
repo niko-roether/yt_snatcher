@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls_bottom.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls_center.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls_top.dart';
 
 class VideoPlayerControls extends StatefulWidget {
-  final VlcPlayerController controller;
+  final VideoPlayerController controller;
   final double aspectRatio;
   final bool showControlsImmediately;
   final bool fullscreen;

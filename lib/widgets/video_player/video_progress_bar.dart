@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 
 class VideoProgressBar extends StatefulWidget {
-  final double progress;
+  final VideoPlayerController controller;
   final bool draggable;
   final Duration animationDuration;
   final bool hideWhenNotDraggable;
 
   VideoProgressBar({
-    this.progress,
+    this.controller,
     this.draggable = false,
     this.animationDuration = const Duration(milliseconds: 100),
     this.hideWhenNotDraggable = false,
@@ -23,6 +24,9 @@ class _VideoProgressBarState extends State<VideoProgressBar>
   static const double _NORMAL_HEIGHT = 2;
   static const double _DRAGGABLE_HEIGHT = 5;
   AnimationController _animationController;
+  double _progress;
+
+  VideoPlayerController get _controller => widget.controller;
 
   @override
   initState() {
@@ -30,7 +34,20 @@ class _VideoProgressBarState extends State<VideoProgressBar>
       vsync: this,
       duration: widget.animationDuration,
     );
+    _progress = _controller.dragbarProgress;
+    _controller.addListener(_onControllerUpdate);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerUpdate);
+    super.dispose();
+  }
+
+  void _onControllerUpdate() {
+    final newProgress = _controller.dragbarProgress;
+    if (newProgress != _progress) setState(() => _progress = newProgress);
   }
 
   @override
@@ -42,7 +59,7 @@ class _VideoProgressBarState extends State<VideoProgressBar>
       _animationController.animateTo(0);
     return CustomPaint(
       painter: _VideoProgressBarPainter(
-        progress: widget.progress,
+        progress: _progress,
         color: Theme.of(context).colorScheme.primary,
         normalBarWidth: widget.hideWhenNotDraggable ? 0 : _NORMAL_HEIGHT,
         draggableBarWidth: _DRAGGABLE_HEIGHT,

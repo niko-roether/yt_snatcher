@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 
 class DownloadPlayer extends StatelessWidget {
   final List<Download> downloads;
@@ -9,7 +9,7 @@ class DownloadPlayer extends StatelessWidget {
   final bool screenSleep;
   final bool defaultFullscreen;
   final bool autoplay;
-  final void Function(VlcPlayerController controller) listener;
+  final void Function(VideoPlayerController controller) listener;
   final void Function() onBack;
 
   DownloadPlayer({
@@ -30,7 +30,7 @@ class DownloadPlayer extends StatelessWidget {
     Download download,
     bool screenSleep = true,
     bool defaultFullscreen = false,
-    void Function(VlcPlayerController controller) listener,
+    void Function(VideoPlayerController controller) listener,
     Duration startAt = Duration.zero,
     bool autoplay = true,
     void Function() onBack,
