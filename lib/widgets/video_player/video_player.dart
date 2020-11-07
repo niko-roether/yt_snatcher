@@ -61,7 +61,6 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
     final player = Stack(children: [
       VlcPlayer(
-        autoplay: false,
         aspectRatio: aspectRatio,
         controller: _controller.vlcController,
         url: widget.url,
