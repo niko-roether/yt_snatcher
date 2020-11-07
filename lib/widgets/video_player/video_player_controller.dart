@@ -3,8 +3,9 @@ import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 export 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 class VideoPlayerController with ChangeNotifier {
-  final VlcPlayerController vlcController;
+  VlcPlayerController vlcController;
   Duration _dragbarPosition;
+  final bool autoplay;
 
   Duration get position => vlcController.position;
   Duration get duration => vlcController.duration;
@@ -16,7 +17,9 @@ class VideoPlayerController with ChangeNotifier {
   Future<void> setPosition(Duration position) =>
       vlcController.setTime(position.inMilliseconds);
 
-  Future<void> play() => vlcController.play();
+  Future<void> play() {
+    return vlcController.play();
+  }
 
   Future<void> pause() => vlcController.pause();
 
@@ -29,10 +32,20 @@ class VideoPlayerController with ChangeNotifier {
     notifyListeners();
   }
 
+  void _onVlcControllerUpdate() async {
+    notifyListeners();
+  }
+
   VideoPlayerController({
-    @required this.vlcController,
-    @required Duration dragbarPosition,
-  }) : _dragbarPosition = dragbarPosition {
-    vlcController.addListener(() => notifyListeners());
+    Duration initialDragbarPosition = Duration.zero,
+    Duration startAt = Duration.zero,
+    this.autoplay = false,
+    // TODO add more options
+  }) : _dragbarPosition = initialDragbarPosition {
+    vlcController = VlcPlayerController(onInit: () {
+      if (autoplay) play();
+    });
+    vlcController.addListener(_onVlcControllerUpdate);
+    setPosition(startAt);
   }
 }
