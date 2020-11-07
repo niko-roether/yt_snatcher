@@ -1,14 +1,10 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 import 'package:yt_snatcher/widgets/video_player/video_progress_bar.dart';
 
 import '../../util.dart';
 
-class VideoPlayerControlsBottom extends StatelessWidget {
-  static const double BAR_PADDING_FULLSCREEN = 16;
-
+class VideoPlayerControlsBottom extends StatefulWidget {
   final Color barColor;
   final bool expanded;
   final VideoPlayerController controller;
@@ -27,23 +23,47 @@ class VideoPlayerControlsBottom extends StatelessWidget {
     this.onDragEnd,
   }) : assert(expanded != null);
 
+  @override
+  State<StatefulWidget> createState() => _VideoPlayerControlsBottomState();
+}
+
+class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
+  static const double _BAR_PADDING_FULLSCREEN = 16;
+
+  bool _dragging = false;
+
+  VideoPlayerController get _controller => widget.controller;
+
+  @override
+  void initState() {
+    _controller.addListener(_onControllerUpdate);
+    super.initState();
+  }
+
+  void _onControllerUpdate() {
+    if (!_dragging && _controller.position != _controller.dragbarPosition)
+      _controller.setDragbarPosition(_controller.position);
+  }
+
   void _onDrag(DragUpdateDetails details, double width) async {
-    final padding = fullscreen ? BAR_PADDING_FULLSCREEN : 0;
+    final padding = widget.fullscreen ? _BAR_PADDING_FULLSCREEN : 0;
     final progress = numInRange(
         (details.localPosition.dx - padding) / (width - 2 * padding), 0, 1);
 
-    final newPos = controller.duration * progress;
-    if (newPos.inMilliseconds != controller.dragbarPosition.inMilliseconds)
-      controller.setDragbarPosition(newPos);
+    final newPos = _controller.duration * progress;
+    if (newPos.inMilliseconds != _controller.dragbarPosition.inMilliseconds)
+      _controller.setDragbarPosition(newPos);
   }
 
   void _onDragStart() {
-    onDragStart?.call();
+    _dragging = true;
+    widget.onDragStart?.call();
   }
 
   void _onDragEnd() {
-    controller.setPosition(controller.dragbarPosition);
-    onDragEnd?.call();
+    _controller.setPosition(_controller.dragbarPosition);
+    _dragging = false;
+    widget.onDragEnd?.call();
   }
 
   @override
@@ -58,17 +78,18 @@ class VideoPlayerControlsBottom extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _UpperBar(
-            controller: controller,
-            expanded: expanded,
+            controller: _controller,
+            expanded: widget.expanded,
           ),
           Padding(
-            padding: EdgeInsets.all(fullscreen ? BAR_PADDING_FULLSCREEN : 0)
-                .copyWith(top: 0),
+            padding:
+                EdgeInsets.all(widget.fullscreen ? _BAR_PADDING_FULLSCREEN : 0)
+                    .copyWith(top: 0),
             child: VideoProgressBar(
-              controller: controller,
-              draggable: expanded,
-              animationDuration: animationDuration,
-              hideWhenNotDraggable: fullscreen,
+              controller: _controller,
+              draggable: widget.expanded,
+              animationDuration: widget.animationDuration,
+              hideWhenNotDraggable: widget.fullscreen,
             ),
           )
         ],
@@ -94,12 +115,14 @@ class _UpperBarState extends State<_UpperBar> {
   @override
   void initState() {
     _controller.addListener(_onControllerUpdate);
+    _position = _controller.dragbarPosition;
     super.initState();
   }
 
   void _onControllerUpdate() {
-    var newPos = _controller.position;
-    if (newPos.inSeconds != _position) setState(() => _position = newPos);
+    var newPos = _controller.dragbarPosition;
+    if (newPos.inSeconds != _position.inSeconds)
+      setState(() => _position = newPos);
   }
 
   @override
