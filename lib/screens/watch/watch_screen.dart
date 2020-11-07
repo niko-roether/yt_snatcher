@@ -14,14 +14,6 @@ class WatchScreen extends StatefulWidget {
 }
 
 class _WatchScreenState extends State<WatchScreen> {
-  VideoPlayerController _controller;
-
-  @override
-  void initState() {
-    _controller = VideoPlayerController(autoplay: true);
-    super.initState();
-  }
-
   @override
   void dispose() {
     _onBack();
@@ -35,16 +27,19 @@ class _WatchScreenState extends State<WatchScreen> {
   @override
   Widget build(BuildContext context) {
     Download dl = ModalRoute.of(context).settings.arguments;
+    final controller = YtsVideoPlayerController.file(
+      file: dl.mediaFile,
+      autoplay: true,
+    );
+
     Widget content;
     if (dl == null || dl.meta.type == DownloadType.MUSIC)
       content = Center(child: Text("No video found"));
     content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        VideoPlayer(
-          url: dl.mediaFile.path,
-          type: VideoSourceType.FILE,
-          controller: _controller,
+        YtsVideoPlayer(
+          controller: controller,
           overlaysWhenPortrait: [SystemUiOverlay.bottom],
           onBack: _onBack,
         ),

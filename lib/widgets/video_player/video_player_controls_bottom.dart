@@ -8,7 +8,7 @@ import '../../util.dart';
 class VideoPlayerControlsBottom extends StatefulWidget {
   final Color barColor;
   final bool expanded;
-  final VideoPlayerController controller;
+  final YtsVideoPlayerController controller;
   final Duration animationDuration;
   final bool fullscreen;
   final void Function() onDragStart;
@@ -33,7 +33,7 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
 
   bool _dragging = false;
 
-  VideoPlayerController get _controller => widget.controller;
+  YtsVideoPlayerController get _controller => widget.controller;
 
   @override
   void initState() {
@@ -101,7 +101,7 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
 }
 
 class _UpperBar extends StatefulWidget {
-  final VideoPlayerController controller;
+  final YtsVideoPlayerController controller;
   final bool expanded;
   final bool fullscreen;
 
@@ -120,7 +120,7 @@ class _UpperBarState extends State<_UpperBar> {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ];
-  VideoPlayerController get _controller => widget.controller;
+  YtsVideoPlayerController get _controller => widget.controller;
   Duration _position;
   Duration _duration;
 

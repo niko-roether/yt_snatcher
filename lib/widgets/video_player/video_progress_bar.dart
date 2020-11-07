@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 
 class VideoProgressBar extends StatefulWidget {
-  final VideoPlayerController controller;
+  final YtsVideoPlayerController controller;
   final bool draggable;
   final Duration animationDuration;
   final bool hideWhenNotDraggable;
@@ -26,7 +26,7 @@ class _VideoProgressBarState extends State<VideoProgressBar>
   AnimationController _animationController;
   double _progress;
 
-  VideoPlayerController get _controller => widget.controller;
+  YtsVideoPlayerController get _controller => widget.controller;
 
   @override
   initState() {

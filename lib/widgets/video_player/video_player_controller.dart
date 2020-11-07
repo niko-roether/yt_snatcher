@@ -1,51 +1,98 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
-export 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'dart:io';
 
-class VideoPlayerController with ChangeNotifier {
-  VlcPlayerController vlcController;
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player.dart';
+
+class YtsVideoPlayerController with ChangeNotifier {
+  VideoPlayerController playerController;
   Duration _dragbarPosition;
   final bool autoplay;
 
-  Duration get position => vlcController.position;
-  Duration get duration => vlcController.duration;
+  Duration get position => playerController.value.position ?? Duration.zero;
+  Duration get duration => playerController.value.duration ?? Duration.zero;
   Duration get dragbarPosition => _dragbarPosition;
-  double get progress => position.inMilliseconds / duration.inMilliseconds;
-  double get dragbarProgress =>
-      dragbarPosition.inMilliseconds / duration.inMilliseconds;
 
-  Future<void> setPosition(Duration position) =>
-      vlcController.setTime(position.inMilliseconds);
-
-  Future<void> play() {
-    return vlcController.play();
+  double get progress {
+    if (duration == Duration.zero) return 0;
+    return position.inMilliseconds / duration.inMilliseconds;
   }
 
-  Future<void> pause() => vlcController.pause();
+  double get dragbarProgress {
+    if (duration == Duration.zero) return 0;
+    return dragbarPosition.inMilliseconds / duration.inMilliseconds;
+  }
 
-  Future<bool> isPlaying() => vlcController.isPlaying();
+  Future<void> setPosition(Duration position) =>
+      playerController.seekTo(position);
 
-  PlayingState get playingState => vlcController.playingState;
+  Future<void> play() {
+    return playerController.play();
+  }
+
+  Future<void> pause() => playerController.pause();
+
+  bool get isPlaying => playerController.value.isPlaying;
+
+  VideoPlayerValue get playingState => playerController.value;
 
   void setDragbarPosition(Duration position) {
     _dragbarPosition = position;
     notifyListeners();
   }
 
-  void _onVlcControllerUpdate() async {
+  void _onVideoControllerUpdate() async {
     notifyListeners();
   }
 
-  VideoPlayerController({
+  YtsVideoPlayerController({
+    @required String path,
+    @required VideoSourceType type,
     Duration initialDragbarPosition = Duration.zero,
     Duration startAt = Duration.zero,
     this.autoplay = false,
     // TODO add more options
   }) : _dragbarPosition = initialDragbarPosition {
-    vlcController = VlcPlayerController(onInit: () {
-      if (autoplay) play();
-    });
-    vlcController.addListener(_onVlcControllerUpdate);
-    setPosition(startAt);
+    switch (type) {
+      case VideoSourceType.FILE:
+        playerController = VideoPlayerController.file(File(path));
+        break;
+      case VideoSourceType.NETWORK:
+        playerController = VideoPlayerController.network(path);
+    }
+    playerController.addListener(_onVideoControllerUpdate);
+    playerController.initialize().then((_) => {
+          setPosition(startAt),
+          if (autoplay) play(),
+        });
+  }
+
+  factory YtsVideoPlayerController.file({
+    @required File file,
+    Duration initialDragbarPosition = Duration.zero,
+    Duration startAt = Duration.zero,
+    bool autoplay = false,
+  }) {
+    return YtsVideoPlayerController(
+      path: file.path,
+      type: VideoSourceType.FILE,
+      initialDragbarPosition: initialDragbarPosition,
+      startAt: startAt,
+      autoplay: autoplay,
+    );
+  }
+  factory YtsVideoPlayerController.network({
+    @required String source,
+    Duration initialDragbarPosition = Duration.zero,
+    Duration startAt = Duration.zero,
+    bool autoplay = false,
+  }) {
+    return YtsVideoPlayerController(
+      path: source,
+      type: VideoSourceType.NETWORK,
+      initialDragbarPosition: initialDragbarPosition,
+      startAt: startAt,
+      autoplay: autoplay,
+    );
   }
 }
