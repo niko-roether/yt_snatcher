@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 import 'package:yt_snatcher/widgets/video_player/video_progress_bar.dart';
 
@@ -80,6 +81,7 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
           _UpperBar(
             controller: _controller,
             expanded: widget.expanded,
+            fullscreen: widget.fullscreen,
           ),
           Padding(
             padding:
@@ -101,14 +103,23 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
 class _UpperBar extends StatefulWidget {
   final VideoPlayerController controller;
   final bool expanded;
+  final bool fullscreen;
 
-  _UpperBar({@required this.controller, this.expanded = true});
+  _UpperBar({
+    @required this.controller,
+    this.expanded = true,
+    this.fullscreen = false,
+  });
 
   @override
   State<StatefulWidget> createState() => _UpperBarState();
 }
 
 class _UpperBarState extends State<_UpperBar> {
+  static const _FULLSCREEN_ORIENTATIONS = [
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ];
   VideoPlayerController get _controller => widget.controller;
   Duration _position;
   Duration _duration;
@@ -129,6 +140,13 @@ class _UpperBarState extends State<_UpperBar> {
       setState(() => _duration = _controller.duration);
   }
 
+  void toggleFullscreen() {
+    // TODO somehow let users into non-fullscreen mode in landscape mode
+    SystemChrome.setPreferredOrientations(
+      widget.fullscreen ? DeviceOrientation.values : _FULLSCREEN_ORIENTATIONS,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!widget.expanded) return Container();
@@ -143,8 +161,9 @@ class _UpperBarState extends State<_UpperBar> {
           ),
         ),
         IconButton(
-          icon: Icon(Icons.fullscreen),
-          onPressed: () => null,
+          icon: Icon(
+              widget.fullscreen ? Icons.fullscreen_exit : Icons.fullscreen),
+          onPressed: () => toggleFullscreen(),
           visualDensity: VisualDensity.compact,
           splashRadius: 8,
           padding: EdgeInsets.zero,
