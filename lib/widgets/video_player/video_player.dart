@@ -9,9 +9,7 @@ enum VideoSourceType { FILE, NETWORK }
 class VideoPlayer extends StatefulWidget {
   final String url;
   final VideoSourceType type;
-  final bool autoplay;
-  final Duration startAt;
-  final void Function(VideoPlayerController controller) listener;
+  final VideoPlayerController controller;
   final void Function() onBack;
   final List<SystemUiOverlay> overlaysWhenPortrait;
   final List<SystemUiOverlay> overlaysAfterDispose;
@@ -19,14 +17,12 @@ class VideoPlayer extends StatefulWidget {
   VideoPlayer({
     @required this.url,
     @required this.type,
-    this.autoplay = false,
-    this.listener,
-    this.startAt = Duration.zero,
+    @required this.controller,
     this.onBack,
     this.overlaysWhenPortrait = SystemUiOverlay.values,
     this.overlaysAfterDispose = SystemUiOverlay.values,
   })  : assert(type != null),
-        assert(autoplay != null);
+        assert(controller != null);
 
   @override
   State<StatefulWidget> createState() {
@@ -34,34 +30,17 @@ class VideoPlayer extends StatefulWidget {
   }
 }
 
+// TODO fix playing state preservation on orientation change
 class _VideoPlayerState extends State<VideoPlayer> {
   static const double _ASPECT_RATIO = 16 / 9;
-  VideoPlayerController _controller;
   bool _fullscreenMode;
 
-  @override
-  initState() {
-    final vlcController = VlcPlayerController(onInit: () {
-      if (widget.autoplay) _controller.play();
-      _controller.setPosition(widget.startAt);
-    });
-    _controller = VideoPlayerController(
-      vlcController: vlcController,
-      dragbarPosition: widget.startAt,
-    );
-    _controller.addListener(_onControllerUpdate);
-    super.initState();
-  }
+  VideoPlayerController get _controller => widget.controller;
 
   @override
   void dispose() {
-    _controller.removeListener(_onControllerUpdate);
     SystemChrome.setEnabledSystemUIOverlays(widget.overlaysAfterDispose);
     super.dispose();
-  }
-
-  void _onControllerUpdate() async {
-    widget.listener?.call(_controller);
   }
 
   void _adjustSystemOverlays(bool fullscreen) {
@@ -82,6 +61,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
     final player = Stack(children: [
       VlcPlayer(
+        autoplay: false,
         aspectRatio: aspectRatio,
         controller: _controller.vlcController,
         url: widget.url,
@@ -97,7 +77,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
       VideoPlayerControls(
         controller: _controller,
         aspectRatio: aspectRatio,
-        showControlsImmediately: !widget.autoplay,
+        showControlsImmediately: !_controller.autoplay,
         fullscreen: isFullscreen,
         onBack: () => widget.onBack?.call(),
       ),
