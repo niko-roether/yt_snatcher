@@ -94,3 +94,16 @@ N numInRange<N extends num>(N number, N min, N max) {
   if (number > max) return max;
   return number;
 }
+
+String stringifyDuration(Duration duration) {
+  if (duration == null) return "0:00";
+  int hours = duration.inHours.floor();
+  int minutes = duration.inMinutes.floor() % 60;
+  int seconds = duration.inSeconds.floor() % 60;
+  // just trust me on this one
+  // uses one of the following formats as they fit:
+  // hh:mm:ss
+  // mm:ss
+  // m:ss
+  return "${hours > 0 ? "$hours${minutes < 10 ? "0" : ""}:" : ""}$minutes:${seconds < 10 ? "0" : ""}$seconds";
+}
