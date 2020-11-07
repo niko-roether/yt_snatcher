@@ -88,3 +88,9 @@ String extractYoutubeId(String urlOrId) {
   assert(urlOrId != null);
   return _ytIdOrUrlRegex.firstMatch(urlOrId).group(1);
 }
+
+N numInRange<N extends num>(N number, N min, N max) {
+  if (number < min) return min;
+  if (number > max) return max;
+  return number;
+}
