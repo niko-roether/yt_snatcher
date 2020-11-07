@@ -4,6 +4,7 @@ import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
 import 'package:yt_snatcher/widgets/video_info_view.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 
 class WatchScreen extends StatefulWidget {
   static const ROUTENAME = "/watch";
@@ -13,6 +14,14 @@ class WatchScreen extends StatefulWidget {
 }
 
 class _WatchScreenState extends State<WatchScreen> {
+  VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    _controller = VideoPlayerController(autoplay: true);
+    super.initState();
+  }
+
   @override
   void dispose() {
     _onBack();
@@ -35,6 +44,7 @@ class _WatchScreenState extends State<WatchScreen> {
         VideoPlayer(
           url: dl.mediaFile.path,
           type: VideoSourceType.FILE,
+          controller: _controller,
           overlaysWhenPortrait: [SystemUiOverlay.bottom],
           onBack: _onBack,
         ),
