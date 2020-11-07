@@ -111,11 +111,13 @@ class _UpperBar extends StatefulWidget {
 class _UpperBarState extends State<_UpperBar> {
   VideoPlayerController get _controller => widget.controller;
   Duration _position;
+  Duration _duration;
 
   @override
   void initState() {
     _controller.addListener(_onControllerUpdate);
     _position = _controller.dragbarPosition;
+    _duration = _controller.duration;
     super.initState();
   }
 
@@ -123,6 +125,8 @@ class _UpperBarState extends State<_UpperBar> {
     var newPos = _controller.dragbarPosition;
     if (newPos.inSeconds != _position.inSeconds)
       setState(() => _position = newPos);
+    if (_controller.duration != _duration)
+      setState(() => _duration = _controller.duration);
   }
 
   @override
@@ -135,7 +139,7 @@ class _UpperBarState extends State<_UpperBar> {
           child: Padding(
             padding: EdgeInsets.only(left: 16),
             child: Text(
-                "${stringifyDuration(_position)} / ${stringifyDuration(_controller.duration)}"),
+                "${stringifyDuration(_position)} / ${stringifyDuration(_duration)}"),
           ),
         ),
         IconButton(
