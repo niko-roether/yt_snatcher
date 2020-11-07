@@ -21,8 +21,12 @@ class _WatchScreenState extends State<WatchScreen> {
 
   @override
   void dispose() {
-    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+    _onBack();
     super.dispose();
+  }
+
+  void _onBack() {
+    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
   }
 
   @override
@@ -34,7 +38,10 @@ class _WatchScreenState extends State<WatchScreen> {
     content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        DownloadPlayer.single(download: dl),
+        DownloadPlayer.single(
+          download: dl,
+          onBack: _onBack,
+        ),
         Expanded(
           child: SingleChildScrollView(child: VideoInfoView(dl.meta.videoMeta)),
         ),
