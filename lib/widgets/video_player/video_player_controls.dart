@@ -5,19 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls_bottom.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls_center.dart';
-import 'package:yt_snatcher/widgets/video_player/video_progress_bar.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player_controls_top.dart';
 
 class VideoPlayerControls extends StatefulWidget {
   final VlcPlayerController controller;
   final double aspectRatio;
   final bool showControlsImmediately;
   final bool fullscreen;
+  final void Function() onBack;
 
   VideoPlayerControls({
     @required this.controller,
     this.aspectRatio = 16 / 9,
     this.showControlsImmediately = true,
     this.fullscreen = false,
+    this.onBack,
   });
 
   @override
@@ -101,13 +103,19 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
           },
           child: Stack(
             children: [
-              Container(),
               Align(
+                alignment: Alignment.topCenter,
+                child: VideoPlayerControlsTop(
+                  visible: _shown,
+                  onBack: () => widget.onBack?.call(),
+                ),
+              ),
+              Align(
+                alignment: Alignment.center,
                 child: VideoPlayerControlsCenter(
                   controller: widget.controller,
                   visible: _shown,
                 ),
-                alignment: Alignment.center,
               ),
               Align(
                 alignment: Alignment.bottomCenter,

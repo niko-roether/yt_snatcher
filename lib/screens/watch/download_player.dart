@@ -10,6 +10,7 @@ class DownloadPlayer extends StatelessWidget {
   final bool defaultFullscreen;
   final bool autoplay;
   final void Function(VlcPlayerController controller) listener;
+  final void Function() onBack;
 
   DownloadPlayer({
     @required this.downloads,
@@ -18,6 +19,7 @@ class DownloadPlayer extends StatelessWidget {
     this.defaultFullscreen = false,
     this.autoplay = true,
     this.listener,
+    this.onBack,
   })  : assert(downloads != null),
         assert(downloads.length > 0),
         assert(startAt != null),
@@ -31,6 +33,7 @@ class DownloadPlayer extends StatelessWidget {
     void Function(VlcPlayerController controller) listener,
     Duration startAt = Duration.zero,
     bool autoplay = true,
+    void Function() onBack,
   }) {
     return DownloadPlayer(
       downloads: [download],
@@ -39,6 +42,7 @@ class DownloadPlayer extends StatelessWidget {
       listener: listener,
       startAt: startAt,
       autoplay: autoplay,
+      onBack: onBack,
     );
   }
 
@@ -50,6 +54,7 @@ class DownloadPlayer extends StatelessWidget {
       autoplay: autoplay,
       listener: listener,
       startAt: startAt,
+      onBack: () => onBack?.call(),
     );
   }
 }

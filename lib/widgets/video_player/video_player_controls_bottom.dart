@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:yt_snatcher/widgets/video_player/video_progress_bar.dart';
 
+import '../../util.dart';
+
 class VideoPlayerControlsBottom extends StatefulWidget {
   final Color barColor;
   final bool expanded;
@@ -26,6 +28,7 @@ class VideoPlayerControlsBottom extends StatefulWidget {
 }
 
 class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
+  static const double _BAR_PADDING_FULLSCREEN = 16;
   VlcPlayerController _controller;
   Duration _position;
   bool _dragging = false;
@@ -55,6 +58,10 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
     int minutes = duration.inMinutes.floor() % 60;
     int seconds = duration.inSeconds.floor() % 60;
     // just trust me on this one
+    // uses one of the following formats as they fit:
+    // hh:mm:ss
+    // mm:ss
+    // m:ss
     return "${hours > 0 ? "$hours${minutes < 10 ? "0" : ""}:" : ""}$minutes:${seconds < 10 ? "0" : ""}$seconds";
   }
 
@@ -63,9 +70,14 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
       setState(() => _position = _controller.position);
   }
 
-  void _onDrag(double progress) async {
+  void _onDrag(DragUpdateDetails details, double width) async {
+    final padding = widget.fullscreen ? _BAR_PADDING_FULLSCREEN : 0;
+    final progress = numInRange(
+        (details.localPosition.dx - padding) / (width - 2 * padding), 0, 1);
+
     final newPos = _controller.duration * progress;
-    setState(() => _position = newPos);
+    if (newPos.inMilliseconds != _position.inMilliseconds)
+      setState(() => _position = newPos);
   }
 
   void _onDragStart() {
@@ -107,9 +119,7 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
     final width = MediaQuery.of(context).size.width;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onHorizontalDragUpdate: (details) {
-        _onDrag(details.localPosition.dx / width);
-      },
+      onHorizontalDragUpdate: (details) => _onDrag(details, width),
       onHorizontalDragEnd: (details) => _onDragEnd(),
       onHorizontalDragStart: (details) => _onDragStart(),
       child: Column(
@@ -118,7 +128,8 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
           _buildUpperBar(),
           Padding(
             padding:
-                EdgeInsets.all(widget.fullscreen ? 16 : 0).copyWith(top: 0),
+                EdgeInsets.all(widget.fullscreen ? _BAR_PADDING_FULLSCREEN : 0)
+                    .copyWith(top: 0),
             child: VideoProgressBar(
               progress: _getProgress(),
               draggable: widget.expanded,

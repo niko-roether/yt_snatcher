@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls.dart';
-import 'package:yt_snatcher/widgets/video_player/video_progress_bar.dart';
 
 enum VideoSourceType { FILE, NETWORK }
 
@@ -11,6 +10,7 @@ class VideoPlayer extends StatefulWidget {
   final bool autoplay;
   final Duration startAt;
   final void Function(VlcPlayerController controller) listener;
+  final void Function() onBack;
 
   VideoPlayer({
     @required this.url,
@@ -18,6 +18,7 @@ class VideoPlayer extends StatefulWidget {
     this.autoplay = false,
     this.listener,
     this.startAt = Duration.zero,
+    this.onBack,
   })  : assert(type != null),
         assert(autoplay != null);
 
@@ -74,6 +75,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
         aspectRatio: aspectRatio,
         showControlsImmediately: !widget.autoplay,
         fullscreen: isFullscreen,
+        onBack: () => widget.onBack?.call(),
       ),
     ]);
     return player;
