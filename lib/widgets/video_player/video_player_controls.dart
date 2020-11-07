@@ -108,6 +108,8 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
                 child: VideoPlayerControlsTop(
                   visible: _shown,
                   onBack: () => widget.onBack?.call(),
+                  animation: _showHideAnimation.drive(Tween(begin: 1, end: 0)),
+                  fullscreen: widget.fullscreen,
                 ),
               ),
               Align(
