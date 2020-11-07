@@ -24,7 +24,7 @@ class _VideoPlayerControlsCenterState extends State<VideoPlayerControlsCenter>
     _state = _controller.playingState ?? PlayingState.PAUSED;
     _controller.addListener(_onControllerUpdate);
     _playPauseAnimation =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 50));
+        AnimationController(vsync: this, duration: Duration(milliseconds: 100));
     super.initState();
   }
 
