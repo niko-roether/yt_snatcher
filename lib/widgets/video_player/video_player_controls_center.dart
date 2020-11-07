@@ -4,9 +4,13 @@ import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 class VideoPlayerControlsCenter extends StatefulWidget {
   final VideoPlayerController controller;
   final bool visible;
+  final void Function() onPressed;
 
-  VideoPlayerControlsCenter({@required this.controller, this.visible = true})
-      : assert(visible != null);
+  VideoPlayerControlsCenter({
+    @required this.controller,
+    this.visible = true,
+    this.onPressed,
+  }) : assert(visible != null);
 
   @override
   State<StatefulWidget> createState() => _VideoPlayerControlsCenterState();
@@ -50,6 +54,7 @@ class _VideoPlayerControlsCenterState extends State<VideoPlayerControlsCenter>
           _controller.pause();
         else
           _controller.play();
+        widget.onPressed?.call();
       },
       iconSize: 40,
     );
