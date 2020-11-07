@@ -74,6 +74,7 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
   }
 
   void _scheduleHide() {
+    _hideTimer?.cancel();
     _hideTimer = Timer(_HIDE_TIMEOUT, () {
       if (_playing) setState(() => _hide());
     });
@@ -117,6 +118,7 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
                 child: VideoPlayerControlsCenter(
                   controller: widget.controller,
                   visible: _shown,
+                  onPressed: () => _scheduleHide(),
                 ),
               ),
               Align(
