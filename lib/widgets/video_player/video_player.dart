@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controls.dart';
@@ -12,6 +13,8 @@ class VideoPlayer extends StatefulWidget {
   final Duration startAt;
   final void Function(VideoPlayerController controller) listener;
   final void Function() onBack;
+  final List<SystemUiOverlay> overlaysWhenPortrait;
+  final List<SystemUiOverlay> overlaysAfterDispose;
 
   VideoPlayer({
     @required this.url,
@@ -20,6 +23,8 @@ class VideoPlayer extends StatefulWidget {
     this.listener,
     this.startAt = Duration.zero,
     this.onBack,
+    this.overlaysWhenPortrait = SystemUiOverlay.values,
+    this.overlaysAfterDispose = SystemUiOverlay.values,
   })  : assert(type != null),
         assert(autoplay != null);
 
@@ -32,6 +37,7 @@ class VideoPlayer extends StatefulWidget {
 class _VideoPlayerState extends State<VideoPlayer> {
   static const double _ASPECT_RATIO = 16 / 9;
   VideoPlayerController _controller;
+  bool _fullscreenMode;
 
   @override
   initState() {
@@ -50,11 +56,19 @@ class _VideoPlayerState extends State<VideoPlayer> {
   @override
   void dispose() {
     _controller.removeListener(_onControllerUpdate);
+    SystemChrome.setEnabledSystemUIOverlays(widget.overlaysAfterDispose);
     super.dispose();
   }
 
   void _onControllerUpdate() async {
     widget.listener?.call(_controller);
+  }
+
+  void _adjustSystemOverlays(bool fullscreen) {
+    if (fullscreen == _fullscreenMode) return;
+    SystemChrome.setEnabledSystemUIOverlays(
+        fullscreen ? [] : widget.overlaysWhenPortrait);
+    _fullscreenMode = fullscreen;
   }
 
   @override
@@ -63,6 +77,9 @@ class _VideoPlayerState extends State<VideoPlayer> {
     final isFullscreen = mediaQuery.orientation == Orientation.landscape;
     final deviceAspectRatio = mediaQuery.size.aspectRatio;
     final aspectRatio = isFullscreen ? deviceAspectRatio : _ASPECT_RATIO;
+
+    _adjustSystemOverlays(isFullscreen);
+
     final player = Stack(children: [
       VlcPlayer(
         aspectRatio: aspectRatio,

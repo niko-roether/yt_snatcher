@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
-import 'package:yt_snatcher/screens/watch/download_player.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
 import 'package:yt_snatcher/widgets/video_info_view.dart';
+import 'package:yt_snatcher/widgets/video_player/video_player.dart';
 
 class WatchScreen extends StatefulWidget {
   static const ROUTENAME = "/watch";
@@ -14,19 +14,13 @@ class WatchScreen extends StatefulWidget {
 
 class _WatchScreenState extends State<WatchScreen> {
   @override
-  void initState() {
-    SystemChrome.setEnabledSystemUIOverlays([]);
-    super.initState();
-  }
-
-  @override
   void dispose() {
     _onBack();
     super.dispose();
   }
 
   void _onBack() {
-    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+    Navigator.pop(context);
   }
 
   @override
@@ -38,8 +32,10 @@ class _WatchScreenState extends State<WatchScreen> {
     content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        DownloadPlayer.single(
-          download: dl,
+        VideoPlayer(
+          url: dl.mediaFile.path,
+          type: VideoSourceType.FILE,
+          overlaysWhenPortrait: [SystemUiOverlay.bottom],
           onBack: _onBack,
         ),
         Expanded(
