@@ -33,16 +33,18 @@ class _VideoPlayerState extends State<VideoPlayer> {
   static const double _ASPECT_RATIO = 16 / 9;
   VideoPlayerController _controller;
 
-  _VideoPlayerState() {
+  @override
+  initState() {
     final vlcController = VlcPlayerController(onInit: () {
       if (widget.autoplay) _controller.play();
       _controller.setPosition(widget.startAt);
     });
     _controller = VideoPlayerController(
       vlcController: vlcController,
-      dragbarPosition: Duration.zero,
+      dragbarPosition: widget.startAt,
     );
     _controller.addListener(_onControllerUpdate);
+    super.initState();
   }
 
   @override
