@@ -57,7 +57,8 @@ class YtsVideoPlayerController with ChangeNotifier {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
+    playerController.removeListener(_onVideoControllerUpdate);
     playerController.dispose();
     super.dispose();
   }
