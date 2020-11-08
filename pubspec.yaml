@@ -17,6 +17,8 @@ dependencies:
   flutter_ffmpeg: ^0.3.0
   path_provider: ^1.6.21
   video_player: ^1.0.0
+  just_audio: ^0.5.6
+  audio_service: ^0.15.2
   
 
 
