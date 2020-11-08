@@ -8,10 +8,21 @@ class YtsVideoPlayerController with ChangeNotifier {
   VideoPlayerController playerController;
   Duration _dragbarPosition;
   final bool autoplay;
+  bool _fullscreen;
 
   Duration get position => playerController.value.position ?? Duration.zero;
   Duration get duration => playerController.value.duration ?? Duration.zero;
   Duration get dragbarPosition => _dragbarPosition;
+  bool get fullscreen => _fullscreen;
+
+  void setFullscreen(bool fullscreen) {
+    _fullscreen = fullscreen;
+    notifyListeners();
+  }
+
+  void enterFullscreen() => setFullscreen(true);
+  void exitFullscreen() => setFullscreen(false);
+  void toggleFullscreen() => setFullscreen(!fullscreen);
 
   double get progress {
     if (duration == Duration.zero) return 0;
@@ -43,6 +54,12 @@ class YtsVideoPlayerController with ChangeNotifier {
 
   void _onVideoControllerUpdate() async {
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    playerController.dispose();
+    super.dispose();
   }
 
   YtsVideoPlayerController({
