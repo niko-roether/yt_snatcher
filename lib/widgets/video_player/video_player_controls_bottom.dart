@@ -132,6 +132,12 @@ class _UpperBarState extends State<_UpperBar> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerUpdate);
+    super.dispose();
+  }
+
   void _onControllerUpdate() {
     var newPos = _controller.dragbarPosition;
     if (newPos.inSeconds != _position.inSeconds)
