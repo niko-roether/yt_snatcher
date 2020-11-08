@@ -52,7 +52,7 @@ class _VideoPlayerControlsBottomState extends State<VideoPlayerControlsBottom> {
         (details.localPosition.dx - padding) / (width - 2 * padding), 0, 1);
 
     final newPos = _controller.duration * progress;
-    if (newPos.inMilliseconds != _controller.dragbarPosition.inMilliseconds)
+    if (newPos != _controller.dragbarPosition)
       _controller.setDragbarPosition(newPos);
   }
 
