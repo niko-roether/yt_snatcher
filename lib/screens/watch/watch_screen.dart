@@ -17,13 +17,14 @@ class _WatchScreenState extends State<WatchScreen> {
   YtsVideoPlayerController _controller;
 
   @override
-  void dispose() {
-    _onBack();
+  void deactivate() {
+    // _onBack();
     _controller?.dispose();
-    super.dispose();
+    super.deactivate();
   }
 
   void _onBack() {
+    _controller.pause();
     Navigator.pop(context);
   }
 
