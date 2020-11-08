@@ -14,9 +14,12 @@ class WatchScreen extends StatefulWidget {
 }
 
 class _WatchScreenState extends State<WatchScreen> {
+  YtsVideoPlayerController _controller;
+
   @override
   void dispose() {
     _onBack();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -27,7 +30,7 @@ class _WatchScreenState extends State<WatchScreen> {
   @override
   Widget build(BuildContext context) {
     Download dl = ModalRoute.of(context).settings.arguments;
-    final controller = YtsVideoPlayerController.file(
+    _controller = YtsVideoPlayerController.file(
       file: dl.mediaFile,
       autoplay: true,
     );
@@ -39,7 +42,7 @@ class _WatchScreenState extends State<WatchScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         YtsVideoPlayer(
-          controller: controller,
+          controller: _controller,
           overlaysWhenPortrait: [SystemUiOverlay.bottom],
           onBack: _onBack,
         ),
