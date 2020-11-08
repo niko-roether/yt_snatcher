@@ -56,18 +56,24 @@ class _YtsVideoPlayerState extends State<YtsVideoPlayer> {
 
     final player = AspectRatio(
       aspectRatio: aspectRatio,
-      child: Stack(children: [
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: VideoPlayer(_controller.playerController),
-        ),
-        VideoPlayerControls(
-          controller: _controller,
-          showControlsImmediately: !_controller.autoplay,
-          fullscreen: isFullscreen,
-          onBack: () => widget.onBack?.call(),
-        ),
-      ]),
+      child: Container(
+        color: Colors.black,
+        child: Stack(children: [
+          Align(
+            alignment: Alignment.topCenter,
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: VideoPlayer(_controller.playerController),
+            ),
+          ),
+          VideoPlayerControls(
+            controller: _controller,
+            showControlsImmediately: !_controller.autoplay,
+            fullscreen: isFullscreen,
+            onBack: () => widget.onBack?.call(),
+          ),
+        ]),
+      ),
     );
     return player;
   }
