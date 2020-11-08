@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:yt_snatcher/widgets/video_player/video_player_controller.dart';
 
 class VideoPlayerControlsCenter extends StatefulWidget {
-  final VideoPlayerController controller;
+  final YtsVideoPlayerController controller;
   final bool visible;
   final void Function() onPressed;
 
@@ -19,13 +20,13 @@ class VideoPlayerControlsCenter extends StatefulWidget {
 class _VideoPlayerControlsCenterState extends State<VideoPlayerControlsCenter>
     with SingleTickerProviderStateMixin {
   AnimationController _playPauseAnimation;
-  PlayingState _state;
+  VideoPlayerValue _state;
 
-  VideoPlayerController get _controller => widget.controller;
+  YtsVideoPlayerController get _controller => widget.controller;
 
   @override
   void initState() {
-    _state = _controller.playingState ?? PlayingState.PAUSED;
+    _state = _controller.playingState;
     _controller.addListener(_onControllerUpdate);
     _playPauseAnimation =
         AnimationController(vsync: this, duration: Duration(milliseconds: 100));
@@ -50,7 +51,7 @@ class _VideoPlayerControlsCenterState extends State<VideoPlayerControlsCenter>
         progress: _playPauseAnimation,
       ),
       onPressed: () async {
-        if (await _controller.isPlaying())
+        if (_controller.isPlaying)
           _controller.pause();
         else
           _controller.play();
@@ -60,12 +61,12 @@ class _VideoPlayerControlsCenterState extends State<VideoPlayerControlsCenter>
     );
   }
 
-  Widget _buildError() {
+  Widget _buildError(String description) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.error, size: 50),
-        Text("Video could not be played"),
+        Text(description),
       ],
     );
   }
@@ -74,19 +75,18 @@ class _VideoPlayerControlsCenterState extends State<VideoPlayerControlsCenter>
   Widget build(BuildContext context) {
     if (!widget.visible) return Container();
     var center;
-    if ([PlayingState.PLAYING, PlayingState.PAUSED, PlayingState.STOPPED, null]
-        .contains(_state)) {
+    if (!_state.isBuffering && !_state.hasError) {
       center = _buildPausePlayButton();
-      if (_state == PlayingState.PLAYING)
+      if (_state.isPlaying)
         _playPauseAnimation.animateTo(0);
       else
         _playPauseAnimation.animateTo(1);
-    } else if (_state == PlayingState.BUFFERING) {
+    } else if (_state.isBuffering) {
       center = CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation(Color(0xffffffff)),
       );
     } else {
-      center = _buildError();
+      center = _buildError(_state.errorDescription);
     }
 
     return center;

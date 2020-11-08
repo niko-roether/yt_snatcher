@@ -8,15 +8,13 @@ import 'package:yt_snatcher/widgets/video_player/video_player_controls_center.da
 import 'package:yt_snatcher/widgets/video_player/video_player_controls_top.dart';
 
 class VideoPlayerControls extends StatefulWidget {
-  final VideoPlayerController controller;
-  final double aspectRatio;
+  final YtsVideoPlayerController controller;
   final bool showControlsImmediately;
   final bool fullscreen;
   final void Function() onBack;
 
   VideoPlayerControls({
     @required this.controller,
-    this.aspectRatio = 16 / 9,
     this.showControlsImmediately = true,
     this.fullscreen = false,
     this.onBack,
@@ -54,7 +52,7 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
   }
 
   void _onControllerUpdate() async {
-    final playing = await widget.controller.isPlaying();
+    final playing = widget.controller.isPlaying;
     if (!this.mounted) return;
     if (playing != _playing) {
       _playing = playing;
@@ -90,50 +88,47 @@ class VideoPlayerControlsState extends State<VideoPlayerControls>
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => _onTap(),
-      child: AspectRatio(
-        aspectRatio: widget.aspectRatio,
-        child: AnimatedBuilder(
-          animation: _showHideAnimation,
-          builder: (context, child) {
-            return Container(
-              color: Colors.black26.withAlpha(
-                (_showHideAnimation.value * 70).round(),
+      child: AnimatedBuilder(
+        animation: _showHideAnimation,
+        builder: (context, child) {
+          return Container(
+            color: Colors.black26.withAlpha(
+              (_showHideAnimation.value * 70).round(),
+            ),
+            child: child,
+          );
+        },
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: VideoPlayerControlsTop(
+                visible: _shown,
+                onBack: () => widget.onBack?.call(),
+                animation: _showHideAnimation.drive(Tween(begin: 1, end: 0)),
+                fullscreen: widget.fullscreen,
               ),
-              child: child,
-            );
-          },
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.topCenter,
-                child: VideoPlayerControlsTop(
-                  visible: _shown,
-                  onBack: () => widget.onBack?.call(),
-                  animation: _showHideAnimation.drive(Tween(begin: 1, end: 0)),
-                  fullscreen: widget.fullscreen,
-                ),
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: VideoPlayerControlsCenter(
+                controller: widget.controller,
+                visible: _shown,
+                onPressed: () => _scheduleHide(),
               ),
-              Align(
-                alignment: Alignment.center,
-                child: VideoPlayerControlsCenter(
-                  controller: widget.controller,
-                  visible: _shown,
-                  onPressed: () => _scheduleHide(),
-                ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: VideoPlayerControlsBottom(
+                controller: widget.controller,
+                expanded: _shown,
+                animationDuration: _SHOW_HIDE_DURATION,
+                fullscreen: widget.fullscreen,
+                onDragStart: () => _hideTimer?.cancel(),
+                onDragEnd: () => _scheduleHide(),
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: VideoPlayerControlsBottom(
-                  controller: widget.controller,
-                  expanded: _shown,
-                  animationDuration: _SHOW_HIDE_DURATION,
-                  fullscreen: widget.fullscreen,
-                  onDragStart: () => _hideTimer?.cancel(),
-                  onDragEnd: () => _scheduleHide(),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

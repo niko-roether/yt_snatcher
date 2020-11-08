@@ -48,7 +48,7 @@ Future<T> retry<T>(Future<T> Function() futureBuilder, int times) async {
 }
 
 final _durationRegex = RegExp(
-    "^([0-9]{1,2}):([0-9]{2}):([0-9]{2})\\.([0-9]{2})([0-9]{2})([0-9]{2})\$");
+    "^(?:([0-9]+):)?([0-9]+):([0-9]+)\\.([0-9]{2})([0-9]{2})([0-9]{2})\$");
 
 Duration parseDuration(String durationString) {
   assert(durationString != null);
@@ -60,7 +60,7 @@ Duration parseDuration(String durationString) {
     );
   }
   return Duration(
-    days: int.parse(match.group(1)),
+    days: int.parse(match.group(1) ?? 0),
     hours: int.parse(match.group(2)),
     minutes: int.parse(match.group(3)),
     seconds: int.parse(match.group(4)),

@@ -143,6 +143,7 @@ abstract class DownloadSet {
   bool _validateDownload(Download d) {
     return d != null &&
         d.mediaFile != null &&
+        d.mediaFile.existsSync() &&
         d.meta != null &&
         d.meta.videoMeta != null;
   }

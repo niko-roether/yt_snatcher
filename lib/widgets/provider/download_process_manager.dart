@@ -43,7 +43,8 @@ class OngoingDownload {
   Future<dlm.Download> start() async => (await _downloaderFuture).download();
 
   Future<void> cancel() async {
-    (await _downloaderFuture).process.cancel();
+    final downloader = (await _downloaderFuture);
+    downloader.process.cancel();
     onCancel?.call(this);
   }
 }
@@ -69,7 +70,7 @@ class DownloadService extends InheritedWidget {
   Future<bool> _checkDuplicate(String id, DownloadType type) async {
     if (currentDownloads.any(
       (d) => d.meta.id == id && d.type == type,
-    )) return false;
+    )) return true;
     return _dlm.checkDuplicate(id, type);
   }
 
@@ -90,12 +91,12 @@ class DownloadService extends InheritedWidget {
       type,
       onCancel: (dl) => remove(dl),
     );
-    add(process);
     var dlset = await dlsetFuture;
     if (await _checkDuplicate(dlset.video.id, type)) {
       _cancel(process);
       throw DuplicateDownloadError(dlset.video.id, type);
     }
+    add(process);
     var dl = await process.start().catchError((e) {
       _cancel(process);
       throw e;
@@ -158,6 +159,17 @@ class _DownloadProcessManagerState extends State<DownloadProcessManager> {
   void _add(OngoingDownload process) => setState(() => _processes.add(process));
   void _remove(OngoingDownload process) =>
       setState(() => _processes.remove(process));
+
+  void _cancel(OngoingDownload process) {
+    _remove(process);
+    process.cancel();
+  }
+
+  @override
+  void dispose() {
+    _processes.forEach((process) => _cancel(process));
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
