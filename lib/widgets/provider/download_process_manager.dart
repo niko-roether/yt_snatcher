@@ -91,12 +91,12 @@ class DownloadService extends InheritedWidget {
       type,
       onCancel: (dl) => remove(dl),
     );
-    add(process);
     var dlset = await dlsetFuture;
     if (await _checkDuplicate(dlset.video.id, type)) {
       _cancel(process);
       throw DuplicateDownloadError(dlset.video.id, type);
     }
+    add(process);
     var dl = await process.start().catchError((e) {
       _cancel(process);
       throw e;
