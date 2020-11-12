@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/audio_player/audio_player.dart';
-import 'package:yt_snatcher/widgets/audio_player/audio_player_controller.dart';
 import 'package:yt_snatcher/widgets/provider/download_provider.dart';
 import 'package:yt_snatcher/widgets/screen.dart';
 
