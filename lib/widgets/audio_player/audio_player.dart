@@ -6,9 +6,13 @@ import 'package:yt_snatcher/widgets/audio_player/audio_player_controller.dart';
 class YtsAudioPlayer extends StatefulWidget {
   final List<Download> downloads;
   final int startIndex;
+  final AudioController controller;
 
-  YtsAudioPlayer({@required this.downloads, this.startIndex = 0})
-      : assert(downloads != null),
+  YtsAudioPlayer({
+    @required this.controller,
+    @required this.downloads,
+    this.startIndex = 0,
+  })  : assert(downloads != null),
         assert(startIndex != null);
 
   @override
@@ -30,26 +34,15 @@ class YtsAudioPlayerState extends State<YtsAudioPlayer> {
     );
   }
 
-  Future<void> _initAudioService() async {
-    await AudioService.start(
-      backgroundTaskEntrypoint: audioTaskEntryPoint,
-      androidNotificationChannelName: 'Audio Service Demo',
-      androidNotificationColor: 0xFF2196f3,
-      androidNotificationIcon: 'mipmap/ic_launcher',
-      androidEnableQueue: true,
-    );
-    // await AudioService.updateQueue(
-    //     widget.downloads.map((dl) => _dlToMediaItem(dl)).toList());
-    // await AudioService.skipToQueueItem(
-    //     AudioService.queue[widget.startIndex].id);
-    // await AudioService.play();
-    await AudioService.playMediaItem(_dlToMediaItem(widget.downloads[0]));
-    setState(() {});
+  @override
+  void initState() {
+    widget.controller
+        .setQueue(widget.downloads.map((dl) => _dlToMediaItem(dl)).toList());
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    _initAudioService();
     return StreamBuilder<MediaItem>(
       stream: AudioService.currentMediaItemStream,
       builder: (context, snapshot) {
