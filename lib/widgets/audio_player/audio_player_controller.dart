@@ -10,6 +10,7 @@ class _AudioPlayerTask extends BackgroundAudioTask {
   Timer _seeker;
   StreamSubscription<PlaybackEvent> _playerEventSubscription;
   AudioProcessingState _stateOverride;
+  AudioSession _session;
 
   Future<void> _seekRelative(Duration amount) {
     var pos = _player.duration + amount;
@@ -68,8 +69,10 @@ class _AudioPlayerTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
-    final session = await AudioSession.instance;
-    session.configure(AudioSessionConfiguration.music());
+    _session = await AudioSession.instance;
+    _session.configure(AudioSessionConfiguration.music());
+
+    await _session.setActive(true);
 
     _player.currentIndexStream.listen((i) {
       if (i != null) AudioServiceBackground.setMediaItem(_queue[i]);
@@ -105,6 +108,7 @@ class _AudioPlayerTask extends BackgroundAudioTask {
   @override
   Future<void> onStop() async {
     await _playerEventSubscription.cancel();
+    await _session.setActive(false);
     await _player.pause();
     await _player.dispose();
     await _onStateChange();
@@ -151,6 +155,49 @@ class _AudioPlayerTask extends BackgroundAudioTask {
   Future<void> onRewind() => _seekRelative(rewindInterval);
 }
 
-void audioTaskEntryPoint() async {
+void _audioTaskEntryPoint() async {
   AudioServiceBackground.run(() => _AudioPlayerTask());
+}
+
+class AudioController {
+  Future<void> _initFuture;
+
+  AudioController() {
+    _initFuture = _init();
+  }
+
+  Future<void> _init() async {
+    if (AudioService.running) await AudioService.stop();
+    await AudioService.start(
+      backgroundTaskEntrypoint: _audioTaskEntryPoint,
+      androidNotificationChannelName: 'Audio Service Demo',
+      androidNotificationColor: 0xFF2196f3,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidEnableQueue: true,
+    );
+  }
+
+  Stream<PlaybackState> get playbackStateStream =>
+      AudioService.playbackStateStream;
+  Stream<MediaItem> get mediaItemStream => AudioService.currentMediaItemStream;
+
+  Future<void> play() async {
+    await _initFuture;
+    return AudioService.play();
+  }
+
+  Future<void> pause() async {
+    await _initFuture;
+    return AudioService.pause();
+  }
+
+  Future<void> setQueue(List<MediaItem> queue) async {
+    await _initFuture;
+    return AudioService.updateQueue(queue);
+  }
+
+  Future<void> dispose() async {
+    await AudioService.stop();
+    await AudioService.disconnect();
+  }
 }
