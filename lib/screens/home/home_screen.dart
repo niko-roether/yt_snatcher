@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/screens/home/add_download_fab.dart';
 import 'package:yt_snatcher/screens/home/nav_bar.dart';
@@ -22,12 +23,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Screen(
-      title: Text("Youtube Snatcher"),
-      content: _pages[_pageIndex],
-      navigationBar: NavBar(currentIndex: _pageIndex, onTap: _onTapNavItem),
-      // TODO there must be a better solution for this
-      fab: _pageIndex == 3 ? AddDownloadFab() : null,
+    return AudioServiceWidget(
+      child: Screen(
+        title: Text("Youtube Snatcher"),
+        content: _pages[_pageIndex],
+        navigationBar: NavBar(currentIndex: _pageIndex, onTap: _onTapNavItem),
+        // TODO there must be a better solution for this
+        fab: _pageIndex == 3 ? AddDownloadFab() : null,
+      ),
     );
   }
 
