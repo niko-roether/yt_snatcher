@@ -4,7 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:just_audio/just_audio.dart';
 
-class _AudioPlayerTask extends BackgroundAudioTask {
+class AudioPlayerTask extends BackgroundAudioTask {
   final _player = AudioPlayer();
   List<MediaItem> _queue = [];
   Timer _seeker;
@@ -70,7 +70,7 @@ class _AudioPlayerTask extends BackgroundAudioTask {
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
     _session = await AudioSession.instance;
-    _session.configure(AudioSessionConfiguration.music());
+    await _session.configure(AudioSessionConfiguration.music());
 
     await _session.setActive(true);
 
@@ -92,7 +92,7 @@ class _AudioPlayerTask extends BackgroundAudioTask {
       }
     });
 
-    AudioServiceBackground.setQueue(_queue);
+    await AudioServiceBackground.setQueue(_queue);
     try {
       await _player.load(ConcatenatingAudioSource(
         children:
@@ -156,48 +156,45 @@ class _AudioPlayerTask extends BackgroundAudioTask {
 }
 
 void _audioTaskEntryPoint() async {
-  AudioServiceBackground.run(() => _AudioPlayerTask());
+  AudioServiceBackground.run(() => AudioPlayerTask());
 }
 
 class AudioController {
-  Future<void> _initFuture;
+  final _initComplete = Completer<void>();
 
-  AudioController() {
-    _initFuture = _init();
-  }
-
-  Future<void> _init() async {
-    if (AudioService.running) await AudioService.stop();
+  Future<void> init([List<MediaItem> queue]) async {
     await AudioService.start(
       backgroundTaskEntrypoint: _audioTaskEntryPoint,
-      androidNotificationChannelName: 'Audio Service Demo',
+      androidNotificationChannelName: 'Youtube Music',
       androidNotificationColor: 0xFF2196f3,
-      androidNotificationIcon: 'mipmap/ic_launcher',
       androidEnableQueue: true,
     );
+    if (queue != null) await AudioService.updateQueue(queue);
+    _initComplete.complete();
   }
 
   Stream<PlaybackState> get playbackStateStream =>
       AudioService.playbackStateStream;
   Stream<MediaItem> get mediaItemStream => AudioService.currentMediaItemStream;
+  Stream<bool> get runningStream => AudioService.runningStream;
 
   Future<void> play() async {
-    await _initFuture;
+    await _initComplete.future;
     return AudioService.play();
   }
 
   Future<void> pause() async {
-    await _initFuture;
+    await _initComplete.future;
     return AudioService.pause();
   }
 
   Future<void> setQueue(List<MediaItem> queue) async {
-    await _initFuture;
+    await _initComplete.future;
     return AudioService.updateQueue(queue);
   }
 
   Future<void> dispose() async {
+    _initComplete.complete();
     await AudioService.stop();
-    await AudioService.disconnect();
   }
 }
