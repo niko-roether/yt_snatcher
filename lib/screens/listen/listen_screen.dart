@@ -22,7 +22,8 @@ class ListenScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData) return CircularProgressIndicator();
           final downloads = snapshot.data;
-          return YtsAudioPlayer(controller: controller, downloads: downloads);
+          // return YtsAudioPlayer(controller: controller, downloads: downloads);
+          return Container();
         },
       ),
     );
