@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:yt_snatcher/services/download_manager.dart';
 import 'package:yt_snatcher/widgets/audio_player/audio_player.dart';
-import 'package:yt_snatcher/widgets/audio_player/audio_player_controller.dart';
 import 'package:yt_snatcher/widgets/provider/download_provider.dart';
 
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final controller = AudioController();
+    // final controller = AudioController();
     return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
@@ -26,7 +25,8 @@ class Home extends StatelessWidget {
                 if (!snapshot.hasData) return CircularProgressIndicator();
                 final downloads = snapshot.data;
                 return YtsAudioPlayer(
-                    controller: controller, downloads: downloads);
+                  downloads: downloads,
+                );
               },
             ),
           ],
